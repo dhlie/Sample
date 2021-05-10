@@ -1,7 +1,10 @@
 package cn.dhl.sample
 
+import android.content.Context
 import android.content.res.Resources
+import android.graphics.Point
 import android.util.TypedValue
+import android.view.WindowManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 
@@ -14,22 +17,28 @@ import androidx.viewbinding.ViewBinding
  */
 
 
-val Int.dp: Float
+val Int.dp: Int
     get() {
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, this.toFloat(), Resources.getSystem().displayMetrics)
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, this.toFloat(), Resources.getSystem().displayMetrics).toInt()
     }
 
-val Float.dp: Float
+val Float.dp: Int
     get() {
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, this, Resources.getSystem().displayMetrics)
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, this, Resources.getSystem().displayMetrics).toInt()
     }
 
 fun getScreenWidth(): Int {
-    return App.instance.resources.displayMetrics.widthPixels
+    val wm = App.instance.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+    val point = Point()
+    wm.defaultDisplay.getRealSize(point)
+    return point.x
 }
 
 fun getScreenHeight(): Int {
-    return App.instance.resources.displayMetrics.heightPixels
+    val wm = App.instance.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+    val point = Point()
+    wm.defaultDisplay.getRealSize(point)
+    return point.y
 }
 
 class BindingViewHolder<T : ViewBinding>(val binding: T) : RecyclerView.ViewHolder(binding.root)

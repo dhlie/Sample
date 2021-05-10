@@ -36,6 +36,7 @@ class DaggerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        title = "DaggerActivity"
 
         DaggerCarComponent.create().engineComponent().name("aaa").build().inject(this)
         println("engine:${engine.hashCode()} engine2:${engine2.hashCode()} name:$eName  car:$car  car2:$car2")

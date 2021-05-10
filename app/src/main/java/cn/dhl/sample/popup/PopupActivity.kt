@@ -1,9 +1,11 @@
 package cn.dhl.sample.popup
 
 import android.os.Bundle
-import android.view.ViewGroup
+import android.view.*
 import androidx.appcompat.app.AppCompatActivity
-import cn.dhl.sample.R
+import cn.dhl.sample.databinding.ActivityPopupBinding
+import cn.dhl.sample.databinding.PopWindowLayoutBinding
+import cn.dhl.sample.dp
 
 /**
  *
@@ -14,14 +16,48 @@ import cn.dhl.sample.R
  */
 class PopupActivity : AppCompatActivity() {
 
+    private lateinit var binding: ActivityPopupBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val view = PopupBackgroundView(this)
-        val params = ViewGroup.MarginLayoutParams(920, 1000)
-        params.leftMargin = 80
-        params.rightMargin = 80
-        view.layoutParams = params
-        setContentView(view)
+        binding = ActivityPopupBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        title = "PopupActivity"
+
+        binding.btn1.setOnClickListener { showPopup(it) }
+        binding.btn2.setOnClickListener { showPopup(it) }
+        binding.btn3.setOnClickListener { showPopup(it) }
+        binding.btn4.setOnClickListener { showPopup(it) }
+        binding.btn5.setOnClickListener { showPopup(it) }
+        binding.btn6.setOnClickListener { showPopup(it) }
+
+
+        val gestureListener = object : GestureDetector.SimpleOnGestureListener() {
+            override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+                showPopup(e.rawX.toInt(), e.rawY.toInt())
+                return true
+            }
+        }
+        val gestureDetector = GestureDetector(applicationContext, gestureListener)
+        binding.root.setOnTouchListener { _, event ->
+            gestureDetector.onTouchEvent(event)
+            true
+        }
     }
 
+    var popupWindow: ArrowPopupWindow? = null
+    private fun showPopup(anchorView: View) {
+
+    }
+
+    private fun showPopup(x: Int, y: Int) {
+        popupWindow?.dismiss()
+        popupWindow = ArrowPopupWindow()
+        val popBinding = PopWindowLayoutBinding.inflate(layoutInflater)
+        popupWindow?.contentView = popBinding.root
+        popupWindow?.width = ViewGroup.LayoutParams.WRAP_CONTENT
+        popupWindow?.height = ViewGroup.LayoutParams.WRAP_CONTENT
+        popupWindow?.setRoundCornerRadius(4.dp)
+        popupWindow?.showAtLocationDown(binding.root, x, y)
+    }
 }
