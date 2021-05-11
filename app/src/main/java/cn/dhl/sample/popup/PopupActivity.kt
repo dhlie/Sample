@@ -30,6 +30,12 @@ class PopupActivity : AppCompatActivity() {
         binding.btn4.setOnClickListener { showPopup(it) }
         binding.btn5.setOnClickListener { showPopup(it) }
         binding.btn6.setOnClickListener { showPopup(it) }
+        binding.btnb1.setOnClickListener { showPopup(it) }
+        binding.btnb2.setOnClickListener { showPopup(it) }
+        binding.btnb3.setOnClickListener { showPopup(it) }
+        binding.btnb4.setOnClickListener { showPopup(it) }
+        binding.btnb5.setOnClickListener { showPopup(it) }
+        binding.btnb6.setOnClickListener { showPopup(it) }
 
 
         val gestureListener = object : GestureDetector.SimpleOnGestureListener() {
@@ -47,7 +53,14 @@ class PopupActivity : AppCompatActivity() {
 
     var popupWindow: ArrowPopupWindow? = null
     private fun showPopup(anchorView: View) {
-
+        popupWindow?.dismiss()
+        popupWindow = ArrowPopupWindow()
+        val popBinding = PopWindowLayoutBinding.inflate(layoutInflater)
+        popupWindow?.contentView = popBinding.root
+        popupWindow?.width = ViewGroup.LayoutParams.WRAP_CONTENT
+        popupWindow?.height = ViewGroup.LayoutParams.WRAP_CONTENT
+        popupWindow?.setRoundCornerRadius(4.dp)
+        popupWindow?.showAtViewUp(anchorView, 0.dp)
     }
 
     private fun showPopup(x: Int, y: Int) {
@@ -58,6 +71,6 @@ class PopupActivity : AppCompatActivity() {
         popupWindow?.width = ViewGroup.LayoutParams.WRAP_CONTENT
         popupWindow?.height = ViewGroup.LayoutParams.WRAP_CONTENT
         popupWindow?.setRoundCornerRadius(4.dp)
-        popupWindow?.showAtLocationDown(binding.root, x, y)
+        popupWindow?.showAtLocationUp(binding.root, x, y)
     }
 }

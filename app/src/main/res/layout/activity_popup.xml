@@ -14,9 +14,13 @@
         app:layout_constraintTop_toTopOf="parent"
         app:flow_horizontalGap="0dp"
         app:flow_verticalGap="20dp"
+        android:paddingTop="20dp"
         app:flow_wrapMode="aligned"
         app:constraint_referenced_ids="btn1,btn2,btn3,btn4,btn5,btn6"/>
-    <Button
+    <TextView
+        android:gravity="center"
+        android:background="@color/purple_500"
+        android:textColor="@color/white"
         android:id="@+id/btn1"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -24,36 +28,128 @@
         app:layout_constraintDimensionRatio="2:1"
         android:text="Dagger"/>
 
-    <Button
+    <TextView
+        android:gravity="center"
+        android:background="@color/purple_500"
+        android:textColor="@color/white"
         android:id="@+id/btn2"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintWidth_percent="0.28"
         app:layout_constraintDimensionRatio="2:1"
         android:text="Popup"/>
-    <Button
+    <TextView
+        android:gravity="center"
+        android:background="@color/purple_500"
+        android:textColor="@color/white"
         android:id="@+id/btn3"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintWidth_percent="0.28"
-        app:layout_constraintDimensionRatio="2:1"/>
-    <Button
+        app:layout_constraintDimensionRatio="2:1"
+        android:text="btn3"/>
+    <TextView
+        android:gravity="center"
+        android:background="@color/purple_500"
+        android:textColor="@color/white"
         android:id="@+id/btn4"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintWidth_percent="0.28"
-        app:layout_constraintDimensionRatio="2:1"/>
-    <Button
+        app:layout_constraintDimensionRatio="2:1"
+        android:text="btn4"/>
+    <TextView
+        android:gravity="center"
+        android:background="@color/purple_500"
+        android:textColor="@color/white"
         android:id="@+id/btn5"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintWidth_percent="0.28"
-        app:layout_constraintDimensionRatio="2:1"/>
-    <Button
+        app:layout_constraintDimensionRatio="2:1"
+        android:text="btn5"/>
+    <TextView
+        android:gravity="center"
+        android:background="@color/purple_500"
+        android:textColor="@color/white"
         android:id="@+id/btn6"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintWidth_percent="0.28"
-        app:layout_constraintDimensionRatio="2:1"/>
+        app:layout_constraintDimensionRatio="2:1"
+        android:text="btn6"/>
 
+    <androidx.constraintlayout.helper.widget.Flow
+        android:id="@+id/flowb"
+        android:layout_width="0dp"
+        android:layout_height="160dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:flow_horizontalGap="0dp"
+        app:flow_verticalGap="20dp"
+        app:flow_wrapMode="aligned"
+        android:paddingBottom="20dp"
+        app:constraint_referenced_ids="btnb1,btnb2,btnb3,btnb4,btnb5,btnb6"/>
+    <TextView
+        android:gravity="center"
+        android:background="@color/purple_500"
+        android:textColor="@color/white"
+        android:id="@+id/btnb1"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintWidth_percent="0.28"
+        app:layout_constraintDimensionRatio="2:1"
+        android:text="btnb1"/>
+
+    <TextView
+        android:gravity="center"
+        android:background="@color/purple_500"
+        android:textColor="@color/white"
+        android:id="@+id/btnb2"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintWidth_percent="0.28"
+        app:layout_constraintDimensionRatio="2:1"
+        android:text="btnb2"/>
+    <TextView
+        android:gravity="center"
+        android:background="@color/purple_500"
+        android:textColor="@color/white"
+        android:id="@+id/btnb3"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintWidth_percent="0.28"
+        app:layout_constraintDimensionRatio="2:1"
+        android:text="btnb3"/>
+    <TextView
+        android:gravity="center"
+        android:background="@color/purple_500"
+        android:textColor="@color/white"
+        android:id="@+id/btnb4"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintWidth_percent="0.28"
+        app:layout_constraintDimensionRatio="2:1"
+        android:text="btnb4"/>
+    <TextView
+        android:gravity="center"
+        android:background="@color/purple_500"
+        android:textColor="@color/white"
+        android:id="@+id/btnb5"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintWidth_percent="0.28"
+        app:layout_constraintDimensionRatio="2:1"
+        android:text="btnb5"/>
+    <TextView
+        android:gravity="center"
+        android:background="@color/purple_500"
+        android:textColor="@color/white"
+        android:id="@+id/btnb6"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintWidth_percent="0.28"
+        app:layout_constraintDimensionRatio="2:1"
+        android:text="btnb6"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

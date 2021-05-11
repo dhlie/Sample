@@ -12,7 +12,7 @@
     <TextView
         android:id="@+id/btn1"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="400px"
         android:gravity="center_vertical"
         android:textColor="@color/white"
         android:paddingHorizontal="12dp"
@@ -27,7 +27,7 @@
         android:textColor="@color/white"
         android:paddingHorizontal="12dp"
         android:paddingVertical="8dp"
-        android:text="删除"/>
+        android:text="添加"/>
 
     <TextView
         android:id="@+id/btn3"
@@ -37,5 +37,5 @@
         android:textColor="@color/white"
         android:paddingHorizontal="12dp"
         android:paddingVertical="8dp"
-        android:text="重命名"/>
+        android:text="添加"/>
 </LinearLayout>
