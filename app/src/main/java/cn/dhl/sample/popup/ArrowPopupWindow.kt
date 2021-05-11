@@ -1,11 +1,11 @@
 package cn.dhl.sample.popup
 
-import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupWindow
 import cn.dhl.sample.appWindowHeight
+import cn.dhl.sample.statusBarHeight
 
 /**
  *
@@ -58,6 +58,13 @@ class ArrowPopupWindow : PopupWindow() {
     }
 
     /**
+     * 是否显示箭头
+     */
+    fun showArrow(show: Boolean) {
+        backgroundView.showArrow = show
+    }
+
+    /**
      * 显示在坐标点 x, y 的下面, 下面空间不足时显示在上面, 箭头顶点坐标为 (x, y)
      * @param x 箭头顶点的 x 坐标 use view.getLocationOnScreen() 获取
      * @param y 箭头顶点的 y 坐标 use view.getLocationOnScreen() 获取
@@ -89,9 +96,8 @@ class ArrowPopupWindow : PopupWindow() {
         val height = backgroundView.measuredHeight
 
         backgroundView.setArrowPosition(x, y)
-        Log.i("duanhl", "x:$x, y:$y")
 
-        if (y <= height) {
+        if (y < height + statusBarHeight) {
             backgroundView.setArrowAtTop(true)
             showAtLocation(parent, Gravity.START or Gravity.TOP, x - width / 2, y)
         } else {
@@ -138,11 +144,11 @@ class ArrowPopupWindow : PopupWindow() {
         val width = backgroundView.measuredWidth
         val height = backgroundView.measuredHeight
         val anchorPosition = intArrayOf(0, 0)
-        anchorView.getLocationInWindow(anchorPosition)
+        anchorView.getLocationOnScreen(anchorPosition)
 
         val arrowX = anchorPosition[0] + anchorView.measuredWidth / 2
         var arrowY = anchorPosition[1] - yOffset
-        if (arrowY < height) {
+        if (arrowY < height + statusBarHeight) {
             arrowY = anchorPosition[1] + anchorView.measuredHeight + yOffset
             backgroundView.setArrowAtTop(true)
             backgroundView.setArrowPosition(arrowX, arrowY)

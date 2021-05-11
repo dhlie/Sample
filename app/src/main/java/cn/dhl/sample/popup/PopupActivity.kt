@@ -17,6 +17,7 @@ import cn.dhl.sample.dp
 class PopupActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityPopupBinding
+    private var popupWindow: ArrowPopupWindow? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,26 +52,41 @@ class PopupActivity : AppCompatActivity() {
         }
     }
 
-    var popupWindow: ArrowPopupWindow? = null
     private fun showPopup(anchorView: View) {
         popupWindow?.dismiss()
         popupWindow = ArrowPopupWindow()
         val popBinding = PopWindowLayoutBinding.inflate(layoutInflater)
-        popupWindow?.contentView = popBinding.root
-        popupWindow?.width = ViewGroup.LayoutParams.WRAP_CONTENT
-        popupWindow?.height = ViewGroup.LayoutParams.WRAP_CONTENT
-        popupWindow?.setRoundCornerRadius(4.dp)
-        popupWindow?.showAtViewUp(anchorView, 0.dp)
+        popupWindow?.apply {
+            contentView = popBinding.root
+            isFocusable = true
+            showArrow(false)
+            width = ViewGroup.LayoutParams.WRAP_CONTENT
+            height = ViewGroup.LayoutParams.WRAP_CONTENT
+            setRoundCornerRadius(4.dp)
+            setOnDismissListener {
+                popupWindow = null
+            }
+            showAtViewDown(anchorView, 4.dp)
+        }
     }
 
     private fun showPopup(x: Int, y: Int) {
         popupWindow?.dismiss()
         popupWindow = ArrowPopupWindow()
         val popBinding = PopWindowLayoutBinding.inflate(layoutInflater)
-        popupWindow?.contentView = popBinding.root
-        popupWindow?.width = ViewGroup.LayoutParams.WRAP_CONTENT
-        popupWindow?.height = ViewGroup.LayoutParams.WRAP_CONTENT
-        popupWindow?.setRoundCornerRadius(4.dp)
-        popupWindow?.showAtLocationUp(binding.root, x, y)
+        popupWindow?.apply {
+            contentView = popBinding.root
+            isFocusable = true
+            showArrow(false)
+            animationStyle = android.R.style.Animation_Toast
+            width = ViewGroup.LayoutParams.WRAP_CONTENT
+            height = ViewGroup.LayoutParams.WRAP_CONTENT
+            setRoundCornerRadius(4.dp)
+            setOnDismissListener {
+                popupWindow = null
+            }
+            showAtLocationDown(binding.root, x, y)
+        }
+
     }
 }

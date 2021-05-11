@@ -1,7 +1,6 @@
 package cn.dhl.sample
 
 import android.content.Context
-import android.content.res.Resources
 import android.graphics.Point
 import android.util.TypedValue
 import android.view.WindowManager
@@ -58,6 +57,12 @@ val appWindowHeight: Int
         val point = Point()
         wm.defaultDisplay.getSize(point)
         return point.y
+    }
+
+val statusBarHeight: Int
+    get() {
+        val resourceId: Int = App.instance.resources.getIdentifier("status_bar_height", "dimen", "android")
+        return App.instance.resources.getDimensionPixelSize(resourceId)
     }
 
 /**

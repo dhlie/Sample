@@ -28,6 +28,7 @@ class PopupArrowBackgroundView : FrameLayout {
 
     private var arrowWidth = 16.dp
     private var arrowHeight = 8.dp
+        get() = if (showArrow) arrowHeight else 0
     //箭头顶点 x 坐标
     private var arrowXOnScreen = 0
     //箭头顶点 y 坐标
@@ -36,6 +37,8 @@ class PopupArrowBackgroundView : FrameLayout {
     var roundCornerRadius: Int = 4.dp
     //左右边距
     var horMargin = 4.dp
+    //是否显示箭头
+    var showArrow = true
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
@@ -77,13 +80,15 @@ class PopupArrowBackgroundView : FrameLayout {
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         setPadding()
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        getChildAt(0)?.let {
-            setMeasuredDimension(measuredWidth, it.measuredHeight + arrowHeight)
+        if (showArrow) {
+            getChildAt(0)?.let {
+                setMeasuredDimension(measuredWidth, it.measuredHeight + arrowHeight)
+            }
         }
     }
 
     private fun initTrianglePath() {
-        if (!arrowPath.isEmpty) {
+        if (!showArrow || !arrowPath.isEmpty) {
             return
         }
         val screenLocation = intArrayOf(0, 0)
@@ -129,6 +134,9 @@ class PopupArrowBackgroundView : FrameLayout {
     }
 
     private fun drawTriangle(canvas: Canvas) {
+        if (!showArrow) {
+            return
+        }
         initTrianglePath()
         canvas.drawPath(arrowPath, arrowPaint)
     }
