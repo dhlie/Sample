@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import android.widget.PopupWindow
 import cn.dhl.sample.appWindowHeight
 import cn.dhl.sample.statusBarHeight
+import java.lang.RuntimeException
 
 /**
  *
@@ -14,7 +15,7 @@ import cn.dhl.sample.statusBarHeight
  * Description:
  *
  */
-class ArrowPopupWindow : PopupWindow() {
+open class ArrowPopupWindow : PopupWindow() {
 
     private lateinit var backgroundView: PopupArrowBackgroundView
 
@@ -29,10 +30,17 @@ class ArrowPopupWindow : PopupWindow() {
         super.setContentView(backgroundView)
     }
 
+    private fun checkInvokeOrder() {
+        if (::backgroundView.isInitialized) {
+            throw RuntimeException("Please invoke this method before setContentView()")
+        }
+    }
+
     /**
      * 设置背景色
      */
     fun setBGColor(color: Int) {
+        checkInvokeOrder()
         backgroundView.setColor(color)
     }
 
@@ -40,6 +48,7 @@ class ArrowPopupWindow : PopupWindow() {
      * 设置箭头尺寸
      */
     fun setArrowSize(width: Int, height: Int) {
+        checkInvokeOrder()
         backgroundView.setArrowSize(width, height)
     }
 
@@ -47,6 +56,7 @@ class ArrowPopupWindow : PopupWindow() {
      * 设置圆角半径
      */
     fun setRoundCornerRadius(radius: Int) {
+        checkInvokeOrder()
         backgroundView.roundCornerRadius = radius
     }
 
@@ -54,6 +64,7 @@ class ArrowPopupWindow : PopupWindow() {
      * 设置左右边距
      */
     fun setHorMargin(margin: Int) {
+        checkInvokeOrder()
         backgroundView.horMargin = margin
     }
 
@@ -61,6 +72,7 @@ class ArrowPopupWindow : PopupWindow() {
      * 是否显示箭头
      */
     fun showArrow(show: Boolean) {
+        checkInvokeOrder()
         backgroundView.showArrow = show
     }
 

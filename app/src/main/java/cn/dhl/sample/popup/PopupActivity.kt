@@ -2,6 +2,7 @@ package cn.dhl.sample.popup
 
 import android.os.Bundle
 import android.view.*
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import cn.dhl.sample.databinding.ActivityPopupBinding
 import cn.dhl.sample.databinding.PopWindowLayoutBinding
@@ -41,7 +42,7 @@ class PopupActivity : AppCompatActivity() {
 
         val gestureListener = object : GestureDetector.SimpleOnGestureListener() {
             override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-                showPopup(e.rawX.toInt(), e.rawY.toInt())
+                showMenuPopup(e.rawX.toInt(), e.rawY.toInt())
                 return true
             }
         }
@@ -78,7 +79,6 @@ class PopupActivity : AppCompatActivity() {
             contentView = popBinding.root
             isFocusable = true
             showArrow(false)
-            animationStyle = android.R.style.Animation_Toast
             width = ViewGroup.LayoutParams.WRAP_CONTENT
             height = ViewGroup.LayoutParams.WRAP_CONTENT
             setRoundCornerRadius(4.dp)
@@ -87,6 +87,24 @@ class PopupActivity : AppCompatActivity() {
             }
             showAtLocationDown(binding.root, x, y)
         }
+
+    }
+
+    private fun showMenuPopup(x: Int, y: Int) {
+        popupWindow?.dismiss()
+        val pop = MenuPopWindow(this)
+        popupWindow = pop
+
+        val menus = mutableListOf<PopMenuItem>()
+        menus.add(PopMenuItem(1, "添加"))
+        menus.add(PopMenuItem(2, "删除"))
+        menus.add(PopMenuItem(3, "重命名"))
+        menus.add(PopMenuItem(4, "另存为"))
+
+        pop.setHorMenuItems(menus, MenuClickListener { id: Int, data: Any? ->
+            Toast.makeText(applicationContext, "id:$id", Toast.LENGTH_SHORT).show()
+        })
+        pop.showAtLocationDown(binding.root, x, y)
 
     }
 }

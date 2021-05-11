@@ -28,7 +28,7 @@ class PopupArrowBackgroundView : FrameLayout {
 
     private var arrowWidth = 16.dp
     private var arrowHeight = 8.dp
-        get() = if (showArrow) arrowHeight else 0
+        get() = if (showArrow) field else 0
     //箭头顶点 x 坐标
     private var arrowXOnScreen = 0
     //箭头顶点 y 坐标
