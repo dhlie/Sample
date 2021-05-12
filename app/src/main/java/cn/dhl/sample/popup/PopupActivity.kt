@@ -55,7 +55,7 @@ class PopupActivity : AppCompatActivity() {
 
     private fun showPopup(anchorView: View) {
         popupWindow?.dismiss()
-        popupWindow = ArrowPopupWindow()
+        popupWindow = ArrowPopupWindow(this)
         val popBinding = PopWindowLayoutBinding.inflate(layoutInflater)
         popupWindow?.apply {
             contentView = popBinding.root
@@ -73,7 +73,7 @@ class PopupActivity : AppCompatActivity() {
 
     private fun showPopup(x: Int, y: Int) {
         popupWindow?.dismiss()
-        popupWindow = ArrowPopupWindow()
+        popupWindow = ArrowPopupWindow(this)
         val popBinding = PopWindowLayoutBinding.inflate(layoutInflater)
         popupWindow?.apply {
             contentView = popBinding.root
@@ -101,8 +101,8 @@ class PopupActivity : AppCompatActivity() {
         menus.add(PopMenuItem(3, "重命名"))
         menus.add(PopMenuItem(4, "另存为"))
 
-        pop.setHorMenuItems(menus, MenuClickListener { id: Int, data: Any? ->
-            Toast.makeText(applicationContext, "id:$id", Toast.LENGTH_SHORT).show()
+        pop.setHorMenuItems(menus, MenuClickListener {
+            Toast.makeText(applicationContext, "id:$it.id", Toast.LENGTH_SHORT).show()
         })
         pop.showAtLocationDown(binding.root, x, y)
 
