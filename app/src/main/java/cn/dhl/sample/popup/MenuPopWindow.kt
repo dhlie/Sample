@@ -20,10 +20,10 @@ import java.lang.RuntimeException
 class PopMenuItem(val id: Int = -1, val text: String = "", val icon: Int = 0, val data: Any? = null)
 
 fun interface MenuClickListener {
-    fun onMenuClick(id: Int, data: Any?)
+    fun onMenuClick(item: PopMenuItem)
 }
 
-class MenuPopWindow(private val context: Context) : ArrowPopupWindow() {
+class MenuPopWindow(context: Context) : ArrowPopupWindow(context) {
 
     private var menuLayout: LinearLayout? = null
     private var horEdgePadding = 16.dp
@@ -32,9 +32,9 @@ class MenuPopWindow(private val context: Context) : ArrowPopupWindow() {
     private var dividerSize = 0.5f.dp
     private var dividerHorPadding = 0
     private var dividerVerPadding = 0
-    private var bgColor = 0xFF000000.toInt()
+    private var bgColor = 0xFF333333.toInt()
     private var textColor = 0xFFFFFFFF.toInt()
-    private var dividerColor = 0x99FFFFFF.toInt()
+    private var dividerColor = 0xFF5E5F61.toInt()
     private var textSize = 14f //sp
 
     init {
@@ -56,7 +56,12 @@ class MenuPopWindow(private val context: Context) : ArrowPopupWindow() {
         this.itemPadding = itemPadding
     }
 
-    fun setupDivider(dividerColor: Int = this.dividerColor, dividerSize: Int = this.dividerSize, dividerHorPadding: Int = this.dividerHorPadding, dividerVerPadding: Int = this.dividerVerPadding) {
+    fun setupDivider(
+        dividerColor: Int = this.dividerColor,
+        dividerSize: Int = this.dividerSize,
+        dividerHorPadding: Int = this.dividerHorPadding,
+        dividerVerPadding: Int = this.dividerVerPadding
+    ) {
         checkInvokeOrder()
         this.dividerColor = dividerColor
         this.dividerSize = dividerSize
@@ -102,17 +107,20 @@ class MenuPopWindow(private val context: Context) : ArrowPopupWindow() {
                 }
 
                 if (index == 0) {
-                    setPadding(horEdgePadding, verEdgePadding, itemPadding / 2, verEdgePadding)
-                    menuLayout.addView(dividerView)
+                    if (menus.size > 1) {
+                        setPadding(horEdgePadding, verEdgePadding, itemPadding / 2, verEdgePadding)
+                        menuLayout.addView(dividerView)
+                    } else {
+                        setPadding(horEdgePadding, verEdgePadding, horEdgePadding, verEdgePadding)
+                    }
                 } else if (index == menus.size - 1) {
                     setPadding(itemPadding / 2, verEdgePadding, horEdgePadding, verEdgePadding)
                 } else {
                     setPadding(itemPadding / 2, verEdgePadding, itemPadding / 2, verEdgePadding)
                     menuLayout.addView(dividerView)
                 }
-//                setBackgroundResource(R.drawable.)//TODO
                 setOnClickListener {
-                    menuClickListener.onMenuClick(item.id, item.data)
+                    menuClickListener.onMenuClick(item)
                 }
             }
         }

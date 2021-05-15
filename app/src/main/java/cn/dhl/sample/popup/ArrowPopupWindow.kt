@@ -1,12 +1,12 @@
 package cn.dhl.sample.popup
 
+import android.content.Context
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupWindow
 import cn.dhl.sample.appWindowHeight
 import cn.dhl.sample.statusBarHeight
-import java.lang.RuntimeException
 
 /**
  *
@@ -15,32 +15,26 @@ import java.lang.RuntimeException
  * Description:
  *
  */
-open class ArrowPopupWindow : PopupWindow() {
+open class ArrowPopupWindow(val context: Context) : PopupWindow() {
 
-    private lateinit var backgroundView: PopupArrowBackgroundView
+    private val backgroundView: PopupArrowBackgroundView = PopupArrowBackgroundView(context)
 
     override fun setContentView(contentView: View?) {
         if (contentView == null) {
+            super.setContentView(contentView)
             return
         }
-        backgroundView = PopupArrowBackgroundView(contentView.context).apply {
-            layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            addView(contentView)
-        }
-        super.setContentView(backgroundView)
-    }
 
-    private fun checkInvokeOrder() {
-        if (::backgroundView.isInitialized) {
-            throw RuntimeException("Please invoke this method before setContentView()")
-        }
+        backgroundView.removeAllViewsInLayout()
+        backgroundView.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        backgroundView.addView(contentView)
+        super.setContentView(backgroundView)
     }
 
     /**
      * 设置背景色
      */
     fun setBGColor(color: Int) {
-        checkInvokeOrder()
         backgroundView.setColor(color)
     }
 
@@ -48,7 +42,6 @@ open class ArrowPopupWindow : PopupWindow() {
      * 设置箭头尺寸
      */
     fun setArrowSize(width: Int, height: Int) {
-        checkInvokeOrder()
         backgroundView.setArrowSize(width, height)
     }
 
@@ -56,7 +49,6 @@ open class ArrowPopupWindow : PopupWindow() {
      * 设置圆角半径
      */
     fun setRoundCornerRadius(radius: Int) {
-        checkInvokeOrder()
         backgroundView.roundCornerRadius = radius
     }
 
@@ -64,7 +56,6 @@ open class ArrowPopupWindow : PopupWindow() {
      * 设置左右边距
      */
     fun setHorMargin(margin: Int) {
-        checkInvokeOrder()
         backgroundView.horMargin = margin
     }
 
@@ -72,7 +63,6 @@ open class ArrowPopupWindow : PopupWindow() {
      * 是否显示箭头
      */
     fun showArrow(show: Boolean) {
-        checkInvokeOrder()
         backgroundView.showArrow = show
     }
 

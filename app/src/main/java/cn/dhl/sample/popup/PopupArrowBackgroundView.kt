@@ -19,24 +19,31 @@ import kotlin.math.min
  */
 class PopupArrowBackgroundView : FrameLayout {
 
-    private val arrowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xff000000.toInt() }
+    private val arrowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xff333333.toInt() }
     private val arrowPath = Path()
+
     //箭头在上边还是在下边
     private var arrowAtTop = true
+
     //箭头离边缘的最小距离, 防止和圆角重合
     private val arrowMinMargin: Int get() = roundCornerRadius + 2.dp
 
     private var arrowWidth = 16.dp
     private var arrowHeight = 8.dp
         get() = if (showArrow) field else 0
+
     //箭头顶点 x 坐标
     private var arrowXOnScreen = 0
+
     //箭头顶点 y 坐标
     private var arrowYOnScreen = 0
+
     //背景圆角半径
     var roundCornerRadius: Int = 4.dp
+
     //左右边距
     var horMargin = 4.dp
+
     //是否显示箭头
     var showArrow = true
 
@@ -101,7 +108,10 @@ class PopupArrowBackgroundView : FrameLayout {
         val arrowHeight = arrowHeight.toFloat()
         val widthSegmentLength = arrowWidth / widthSegments //宽度每份的长度
         val heightSegmentLength = arrowHeight / heightSegments //高度每份的长度
-        arrowCenterX = max(paddingStart + arrowMinMargin + quadSegments * widthSegmentLength + arrowWidth / 2, min(arrowCenterX, measuredWidth - paddingEnd - arrowMinMargin.toFloat() - quadSegments * widthSegmentLength - arrowWidth / 2))
+        arrowCenterX = max(
+            paddingStart + arrowMinMargin + quadSegments * widthSegmentLength + arrowWidth / 2,
+            min(arrowCenterX, measuredWidth - paddingEnd - arrowMinMargin.toFloat() - quadSegments * widthSegmentLength - arrowWidth / 2)
+        )
         val xStart = arrowCenterX - (arrowWidth / 2 + quadSegments * widthSegmentLength)
         arrowPath.apply {
             reset()
@@ -113,7 +123,12 @@ class PopupArrowBackgroundView : FrameLayout {
                 lineTo(arrowCenterX - quadWidth, quadHeight)
                 quadTo(arrowCenterX, 0f, arrowCenterX + quadWidth, quadHeight)
                 lineTo(arrowCenterX + (widthSegments / 2 - quadSegments) * widthSegmentLength, arrowHeight - quadHeight)
-                quadTo(arrowCenterX + widthSegments / 2 * widthSegmentLength, arrowHeight, arrowCenterX + (widthSegments / 2 + quadSegments) * widthSegmentLength, arrowHeight)
+                quadTo(
+                    arrowCenterX + widthSegments / 2 * widthSegmentLength,
+                    arrowHeight,
+                    arrowCenterX + (widthSegments / 2 + quadSegments) * widthSegmentLength,
+                    arrowHeight
+                )
                 close()
             } else {
                 moveTo(xStart, measuredHeight - arrowHeight)
@@ -121,7 +136,12 @@ class PopupArrowBackgroundView : FrameLayout {
                 lineTo(arrowCenterX - quadWidth, measuredHeight - quadHeight)
                 quadTo(arrowCenterX, measuredHeight.toFloat(), arrowCenterX + quadWidth, measuredHeight - quadHeight)
                 lineTo(arrowCenterX + (widthSegments / 2 - quadSegments) * widthSegmentLength, measuredHeight - arrowHeight + quadHeight)
-                quadTo(arrowCenterX + widthSegments / 2 * widthSegmentLength, measuredHeight - arrowHeight, arrowCenterX + (widthSegments / 2 + quadSegments) * widthSegmentLength, measuredHeight - arrowHeight)
+                quadTo(
+                    arrowCenterX + widthSegments / 2 * widthSegmentLength,
+                    measuredHeight - arrowHeight,
+                    arrowCenterX + (widthSegments / 2 + quadSegments) * widthSegmentLength,
+                    measuredHeight - arrowHeight
+                )
                 close()
             }
         }
@@ -143,9 +163,25 @@ class PopupArrowBackgroundView : FrameLayout {
 
     private fun drawBackground(canvas: Canvas) {
         if (arrowAtTop) {
-            canvas.drawRoundRect(paddingStart.toFloat(), arrowHeight.toFloat(), (measuredWidth - paddingEnd).toFloat(), measuredHeight.toFloat(), roundCornerRadius.toFloat(), roundCornerRadius.toFloat(), arrowPaint)
+            canvas.drawRoundRect(
+                paddingStart.toFloat(),
+                arrowHeight.toFloat(),
+                (measuredWidth - paddingEnd).toFloat(),
+                measuredHeight.toFloat(),
+                roundCornerRadius.toFloat(),
+                roundCornerRadius.toFloat(),
+                arrowPaint
+            )
         } else {
-            canvas.drawRoundRect(paddingStart.toFloat(), 0f, (measuredWidth - paddingEnd).toFloat(), (measuredHeight - arrowHeight).toFloat(), roundCornerRadius.toFloat(), roundCornerRadius.toFloat(), arrowPaint)
+            canvas.drawRoundRect(
+                paddingStart.toFloat(),
+                0f,
+                (measuredWidth - paddingEnd).toFloat(),
+                (measuredHeight - arrowHeight).toFloat(),
+                roundCornerRadius.toFloat(),
+                roundCornerRadius.toFloat(),
+                arrowPaint
+            )
         }
     }
 }
