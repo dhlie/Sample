@@ -1,8 +1,15 @@
 package cn.dhl.sample
 
 import android.Manifest
+import android.app.Activity
+import android.content.ContentResolver
+import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.provider.OpenableColumns
+import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import cn.dhl.sample.dagger.DaggerActivity
@@ -21,7 +28,79 @@ class MainActivity : AppCompatActivity() {
         binding.btn1.setOnClickListener { startActivity(Intent(applicationContext, DaggerActivity::class.java)) }
         binding.btn2.setOnClickListener { startActivity(Intent(applicationContext, PopupActivity::class.java)) }
         binding.btn3.setOnClickListener { requestPermission() }
+        binding.btn4.setOnClickListener { openFileExplorer() }
 
+    }
+
+    private fun openFileExplorer() {
+        val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "*/*"
+        }
+
+        startActivityForResult(intent, REQUEST_CODE_OPEN_FILE)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == REQUEST_CODE_OPEN_FILE && resultCode == Activity.RESULT_OK) {
+            data?.data?.also { uri ->
+                try {
+                    contentResolver.openInputStream(uri)?.use { inputStream ->
+                        val name = getFileDisplayNameFromUri(applicationContext, uri)
+                        val length = inputStream.available()
+                        if (length > 0) {
+                            val byte = inputStream.read()
+                            Log.i(TAG, "pppick  first byte:$byte  inputStream length: $length  fileName:${name}"
+                            )
+                        } else {
+                            Log.i(TAG, "pppick length =====0 inputStream length: $length  fileName:${name}")
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
+
+    /**
+     * Returns a file's display name from its [android.content.ContentResolver.SCHEME_FILE]
+     * or [android.content.ContentResolver.SCHEME_CONTENT] Uri. The display name of a file
+     * includes its extension.
+     *
+     * @param context Context trying to resolve the file's display name.
+     * @param uri Uri of the file.
+     * @return the file's display name, or the uri's string if something fails or the uri isn't in
+     * the schemes specified above.
+     */
+    private fun getFileDisplayNameFromUri(context: Context, uri: Uri): String? {
+        val scheme = uri.scheme
+        if (ContentResolver.SCHEME_FILE == scheme) {
+            return uri.lastPathSegment
+        } else if (ContentResolver.SCHEME_CONTENT == scheme) {
+            context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    if (nameIndex != -1) {
+                        return cursor.getString(nameIndex)
+                    }
+                    val dataIndex = cursor.getColumnIndex("_data")
+                    if (dataIndex != -1) {
+                        cursor.getString(dataIndex)?.let { path ->
+                            val index = path.lastIndexOf("/")
+                            return if (index == -1) path else path.substring(index + 1)
+                        }
+                    }
+                }
+                return null
+            }
+        }
+
+        // This will only happen if the Uri isn't either SCHEME_CONTENT or SCHEME_FILE, so we assume
+        // it already represents the file's name.
+        return uri.toString()
     }
 
     private fun requestPermission() {
@@ -49,6 +128,7 @@ class MainActivity : AppCompatActivity() {
                     .show()
             }
             .onAllGranted {
+                Toast.makeText(applicationContext, "permission ok", Toast.LENGTH_SHORT).show()
             }
             .onDenied { perms ->
             }
@@ -67,6 +147,11 @@ class MainActivity : AppCompatActivity() {
                     .show()
             }
             .start()
+    }
+
+    companion object {
+        const val TAG = "MainActivity"
+        const val REQUEST_CODE_OPEN_FILE = 100
     }
 
 }
