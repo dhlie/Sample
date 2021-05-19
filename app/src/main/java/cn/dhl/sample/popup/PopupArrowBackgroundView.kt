@@ -39,7 +39,7 @@ class PopupArrowBackgroundView : FrameLayout {
     private var arrowYOnScreen = 0
 
     //背景圆角半径
-    var roundCornerRadius: Int = 4.dp
+    var roundCornerRadius: Int = 8.dp
 
     //左右边距
     var horMargin = 4.dp

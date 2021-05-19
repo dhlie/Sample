@@ -19,6 +19,11 @@ open class ArrowPopupWindow(val context: Context) : PopupWindow() {
 
     private val backgroundView: PopupArrowBackgroundView = PopupArrowBackgroundView(context)
 
+    init {
+        width = ViewGroup.LayoutParams.WRAP_CONTENT
+        height = ViewGroup.LayoutParams.WRAP_CONTENT
+    }
+
     override fun setContentView(contentView: View?) {
         if (contentView == null) {
             super.setContentView(contentView)
@@ -64,6 +69,17 @@ open class ArrowPopupWindow(val context: Context) : PopupWindow() {
      */
     fun showArrow(show: Boolean) {
         backgroundView.showArrow = show
+    }
+
+    /**
+     * 设置箭头顶点在屏幕中的坐标
+     */
+    fun setArrowPosition(x: Int, y: Int) {
+        backgroundView.setArrowPosition(x, y)
+    }
+
+    fun setArrowAtTop(atTop: Boolean) {
+        backgroundView.setArrowAtTop(atTop)
     }
 
     /**
