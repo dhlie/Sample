@@ -8,6 +8,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
+import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -105,48 +106,69 @@ class MainActivity : AppCompatActivity() {
 
     private fun requestPermission() {
         PermissionHelper.with(this)
-            .permission(
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.CAMERA,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            )
-            .rationale { perms, consumer ->
-                val ps = StringBuilder()
-                for (p in perms) {
-                    ps.append("\n").append(PermissionHelper.permissionToText(p))
+            .intentOrNull {
+                if (Settings.canDrawOverlays(this)) {
+                    null
+                } else {
+                    Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
                 }
-
-                AlertDialog.Builder(this)
-                    .setMessage("需要以下权限才能执行此操作:$ps")
-                    .setPositiveButton("确定") { _, _ ->
-                        consumer.accept()
-                    }
-                    .setNegativeButton("取消") { _, _ ->
-                        consumer.deny()
-                    }
-                    .show()
             }
-            .onAllGranted {
-                Toast.makeText(applicationContext, "permission ok", Toast.LENGTH_SHORT).show()
-            }
-            .onDenied { perms ->
-            }
-            .onNoAskAgain { perms ->
-                val ps = StringBuilder()
-                for (p in perms) {
-                    ps.append("\n").append(PermissionHelper.permissionToText(p))
+            .onIntentResult {
+                if (Settings.canDrawOverlays(this)) {
+                    Toast.makeText(applicationContext, "window permission ok", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(applicationContext, "window permission fail", Toast.LENGTH_SHORT).show()
                 }
-
-                AlertDialog.Builder(this)
-                    .setMessage("请到设置页面开启如下权限:$ps")
-                    .setPositiveButton("确定") { _, _ ->
-                        PermissionHelper.toAppSetting(this)
-                    }
-                    .setNegativeButton("取消", null)
-                    .show()
             }
             .start()
+
+
+
+
+
+//        PermissionHelper.with(this)
+//            .permission(
+//                Manifest.permission.READ_EXTERNAL_STORAGE,
+//                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+//                Manifest.permission.CAMERA,
+//                Manifest.permission.ACCESS_FINE_LOCATION
+//            )
+//            .rationale { perms, consumer ->
+//                val ps = StringBuilder()
+//                for (p in perms) {
+//                    ps.append("\n").append(PermissionHelper.permissionToText(p))
+//                }
+//
+//                AlertDialog.Builder(this)
+//                    .setMessage("需要以下权限才能执行此操作:$ps")
+//                    .setPositiveButton("确定") { _, _ ->
+//                        consumer.accept()
+//                    }
+//                    .setNegativeButton("取消") { _, _ ->
+//                        consumer.deny()
+//                    }
+//                    .show()
+//            }
+//            .onGranted {
+//                Toast.makeText(applicationContext, "permission ok", Toast.LENGTH_SHORT).show()
+//            }
+//            .onDenied { perms, noAskAgainPerms ->
+//                noAskAgainPerms?.let { perms ->
+//                    val ps = StringBuilder()
+//                    for (p in perms) {
+//                        ps.append("\n").append(PermissionHelper.permissionToText(p))
+//                    }
+//
+//                    AlertDialog.Builder(this)
+//                        .setMessage("请到设置页面开启如下权限:$ps")
+//                        .setPositiveButton("确定") { _, _ ->
+//                            PermissionHelper.toAppSetting(this)
+//                        }
+//                        .setNegativeButton("取消", null)
+//                        .show()
+//                }
+//            }
+//            .start()
     }
 
     companion object {
