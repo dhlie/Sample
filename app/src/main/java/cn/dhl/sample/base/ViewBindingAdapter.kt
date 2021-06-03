@@ -14,25 +14,35 @@ import androidx.viewbinding.ViewBinding
 
 open class BindingViewHolder<out T : ViewBinding>(val binding: T) : RecyclerView.ViewHolder(binding.root)
 
-abstract class ViewBindingAdapter<T: ViewBinding, K> : RecyclerView.Adapter<BindingViewHolder<T>>() {
+abstract class ViewBindingAdapter<T : ViewBinding, K> : RecyclerView.Adapter<BindingViewHolder<T>>() {
 
-    protected var dataList: MutableList<K>? = null
+    protected var data: List<K>? = null
     private var clickListener: ((view: View, data: K) -> Unit)? = null
 
-    fun changeData(data: MutableList<K>?) {
-        dataList = data
+    fun changeData(data: List<K>?) {
+        this.data = data
         notifyDataSetChanged()
     }
 
+    open fun addData(data: List<K>?) {
+        if (data.isNullOrEmpty()) {
+            return
+        }
+        val startPos = this.data?.size ?: 0
+        val mutableList = this.data as? MutableList ?: return
+        mutableList.addAll(data)
+        notifyItemRangeInserted(startPos, data.size)
+    }
+
     override fun getItemCount(): Int {
-        return dataList?.size ?: 0
+        return data?.size ?: 0
     }
 
     protected fun bindClick(view: View, data: K) {
         if (!view.hasOnClickListeners()) {
             view.setOnClickListener { view ->
                 val tag = view.tag as? K ?: return@setOnClickListener
-                clickListener?.invoke(view, tag, )
+                clickListener?.invoke(view, tag)
             }
         }
         view.tag = data

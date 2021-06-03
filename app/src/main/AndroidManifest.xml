@@ -27,6 +27,7 @@
         </activity>
         <activity android:name=".dagger.DaggerActivity" />
         <activity android:name=".popup.PopupActivity"/>
+        <activity android:name=".adaptertest.AdapterTestActivity"/>
     </application>
 
 </manifest>

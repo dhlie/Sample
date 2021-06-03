@@ -11,8 +11,8 @@ import android.provider.OpenableColumns
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import cn.dhl.sample.adaptertest.AdapterTestActivity
 import cn.dhl.sample.dagger.DaggerActivity
 import cn.dhl.sample.databinding.ActivityMainBinding
 import cn.dhl.sample.popup.PopupActivity
@@ -30,6 +30,7 @@ class MainActivity : AppCompatActivity() {
         binding.btn2.setOnClickListener { startActivity(Intent(applicationContext, PopupActivity::class.java)) }
         binding.btn3.setOnClickListener { requestPermission() }
         binding.btn4.setOnClickListener { openFileExplorer() }
+        binding.btn5.setOnClickListener { startActivity(Intent(applicationContext, AdapterTestActivity::class.java)) }
 
     }
 
