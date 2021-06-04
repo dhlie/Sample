@@ -24,14 +24,33 @@ abstract class ViewBindingAdapter<T : ViewBinding, K> : RecyclerView.Adapter<Bin
         notifyDataSetChanged()
     }
 
-    open fun addData(data: List<K>?) {
-        if (data.isNullOrEmpty()) {
+    open fun addData(list: List<K>?, index: Int = data?.size ?: 0) {
+        if (list.isNullOrEmpty()) {
             return
         }
-        val startPos = this.data?.size ?: 0
-        val mutableList = this.data as? MutableList ?: return
-        mutableList.addAll(data)
-        notifyItemRangeInserted(startPos, data.size)
+        val oldCount = data?.size ?: 0
+
+        if (index < 0 || index > oldCount) {
+            throw IndexOutOfBoundsException("index:$index, size:$oldCount")
+        }
+
+        if (data == null) {
+            data = mutableListOf()
+        }
+        val mutableList = data as? MutableList ?: return
+        var startInsertPos = index
+        if (hasHeaderView()) {
+            startInsertPos++
+        }
+
+        mutableList.addAll(index, list)
+        notifyItemRangeInserted(startInsertPos, list.size)
+
+        val changeStartPos = startInsertPos + list.size
+        val changeCount = itemCount - changeStartPos
+        if (changeCount > 0) {
+            notifyItemRangeChanged(changeStartPos, changeCount)
+        }
     }
 
     override fun getItemCount(): Int {
@@ -51,5 +70,11 @@ abstract class ViewBindingAdapter<T : ViewBinding, K> : RecyclerView.Adapter<Bin
     fun setClickListener(listener: (view: View, data: K) -> Unit) {
         this.clickListener = listener
     }
+
+    open fun hasHeaderView(): Boolean = false
+
+    open fun hasFooterView(): Boolean = false
+
+    open fun hasLoadMoreView(): Boolean = false
 
 }

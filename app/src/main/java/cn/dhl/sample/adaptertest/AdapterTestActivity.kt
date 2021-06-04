@@ -3,6 +3,7 @@ package cn.dhl.sample.adaptertest
 import android.os.Bundle
 import android.view.Gravity
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -25,6 +26,13 @@ class AdapterTestActivity : AppCompatActivity() {
     private lateinit var adapter: AdapterTestAdapter
     private var loadMoreView: BaseLoadMoreView? = null
 
+    private var toast: Toast? = null
+    private fun toast(message: String) {
+        toast?.cancel()
+        toast = Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT)
+        toast?.show()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAdapterTestBinding.inflate(layoutInflater)
@@ -41,6 +49,9 @@ class AdapterTestActivity : AppCompatActivity() {
             setPadding(padding, padding, padding, padding)
             setTextColor(0xff000000.toInt())
             setBackgroundColor(0xffffff00.toInt())
+            setOnClickListener {
+                toast(text.toString())
+            }
         }
         val header2 = TextView(this).apply {
             text = "Header 2"
@@ -50,6 +61,9 @@ class AdapterTestActivity : AppCompatActivity() {
             setPadding(padding, padding, padding, padding)
             setTextColor(0xff000000.toInt())
             setBackgroundColor(0xffff00ff.toInt())
+            setOnClickListener {
+                toast(text.toString())
+            }
         }
         adapter.addHeaderView(header1)
         adapter.addHeaderView(header2)
@@ -58,19 +72,25 @@ class AdapterTestActivity : AppCompatActivity() {
             text = "Footer 1"
             gravity = Gravity.CENTER
             textSize = 20f
-            val padding = 12.dp
+            val padding = 22.dp
             setPadding(padding, padding, padding, padding)
             setTextColor(0xff000000.toInt())
             setBackgroundColor(0xffff00ff.toInt())
+            setOnClickListener {
+                toast(text.toString())
+            }
         }
         val footer2 = TextView(this).apply {
             text = "Footer 2"
             gravity = Gravity.CENTER
             textSize = 20f
-            val padding = 12.dp
+            val padding = 22.dp
             setPadding(padding, padding, padding, padding)
             setTextColor(0xff000000.toInt())
             setBackgroundColor(0xffff00ff.toInt())
+            setOnClickListener {
+                toast(text.toString())
+            }
         }
         adapter.addFooterView(footer1)
         adapter.addFooterView(footer2)
@@ -78,6 +98,9 @@ class AdapterTestActivity : AppCompatActivity() {
             setLoadMoreCallback { loadMore() }
         }
         adapter.loadMoreView = loadMoreView
+        adapter.setClickListener { view, data ->
+            toast(data.text)
+        }
 
         binding.rvList.adapter = adapter
         adapter.changeData(getDataList())

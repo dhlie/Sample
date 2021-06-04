@@ -2,6 +2,7 @@ package cn.dhl.sample.base
 
 import android.content.Context
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -58,6 +59,7 @@ abstract class BaseLoadMoreView : FrameLayout {
         state = STATE_LOADING
         onLoadingStart()
         loadMoreCallback?.invoke()
+        Log.i("dddhl", "startLoading------")
     }
 
     fun finishLoading() {
@@ -66,6 +68,7 @@ abstract class BaseLoadMoreView : FrameLayout {
         }
         state = STATE_IDLE
         onLoadingFinish()
+        Log.i("dddhl", "finishLoading------")
     }
 }
 
@@ -92,20 +95,8 @@ abstract class HeaderFooterAdapter<T: ViewBinding, K>(private val orientation: I
             notifyDataSetChanged()
         }
 
-    override fun addData(data: List<K>?) {
-        if (data.isNullOrEmpty()) {
-            return
-        }
-
-        var startPos = this.data?.size ?: 0
-        if (hasHeaderView()) {
-            startPos++
-        }
-
-        val mutableList = this.data as? MutableList ?: return
-        mutableList.addAll(data)
-
-        notifyItemRangeInserted(startPos, data.size)
+    fun getDataSize(): Int {
+        return this.data?.size ?: 0
     }
 
     override fun getItemCount(): Int {
@@ -127,6 +118,7 @@ abstract class HeaderFooterAdapter<T: ViewBinding, K>(private val orientation: I
         val hasFooter = hasFooterView()
         val hasLoadMore = hasLoadMoreView()
 
+        val itemCount = itemCount
         if (!hasLoadMore) {
             return if (!hasHeader && !hasFooter) {
                 TYPE_ITEM
@@ -174,6 +166,7 @@ abstract class HeaderFooterAdapter<T: ViewBinding, K>(private val orientation: I
     }
 
     final override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BindingViewHolder<ViewBinding> {
+        Log.i("dddhl", "onCreateViewHolder viewType:$viewType")
         return when (viewType) {
             TYPE_HEADER -> HeaderFooterViewHolder(headerLayout!!)
             TYPE_FOOTER -> HeaderFooterViewHolder(footerLayout!!)
@@ -184,10 +177,8 @@ abstract class HeaderFooterAdapter<T: ViewBinding, K>(private val orientation: I
     }
 
     override fun onBindViewHolder(holder: BindingViewHolder<ViewBinding>, position: Int) {
+        Log.i("dddhl", "onBindViewHolder pos:$position")
         if (holder is HeaderFooterViewHolder) {
-            if (holder.binding.root == loadMoreView) {
-                loadMoreView?.startLoading()
-            }
             return
         }
         var realPos = position
@@ -197,20 +188,27 @@ abstract class HeaderFooterAdapter<T: ViewBinding, K>(private val orientation: I
         onBindItemViewHolder(holder as BindingViewHolder<T>, realPos)
     }
 
+    override fun onViewAttachedToWindow(holder: BindingViewHolder<ViewBinding>) {
+        super.onViewAttachedToWindow(holder)
+        if (holder is HeaderFooterViewHolder && holder.binding.root == loadMoreView) {
+            loadMoreView?.startLoading()
+        }
+    }
+
     abstract fun onCreateItemViewHolder(parent: ViewGroup, viewType: Int): BindingViewHolder<T>
     abstract fun onBindItemViewHolder(holder: BindingViewHolder<T>, position: Int)
 
-    protected fun hasHeaderView(): Boolean {
+    override fun hasHeaderView(): Boolean {
         val count = headerLayout?.childCount ?: 0
         return count > 0
     }
 
-    protected fun hasFooterView(): Boolean {
-        val count = footerLayout?.childCount ?:0
+    override fun hasFooterView(): Boolean {
+        val count = footerLayout?.childCount ?: 0
         return count > 0
     }
 
-    protected fun hasLoadMoreView(): Boolean {
+    override fun hasLoadMoreView(): Boolean {
         return loadMoreView != null
     }
 
