@@ -8,8 +8,8 @@
 
     <ProgressBar
         android:id="@+id/pbLoading"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
         android:layout_gravity="center"
         android:layout_margin="8dp" />
 
@@ -18,6 +18,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:textColor="#E3D3D3"
+        android:textColor="#7f000000"
         tools:text="position" />
 </merge><!--</FrameLayout>-->

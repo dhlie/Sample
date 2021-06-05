@@ -1,6 +1,5 @@
 package cn.dhl.sample
 
-import android.Manifest
 import android.app.Activity
 import android.content.ContentResolver
 import android.content.Context
@@ -26,13 +25,28 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.btn1.setOnClickListener { startActivity(Intent(applicationContext, DaggerActivity::class.java)) }
-        binding.btn2.setOnClickListener { startActivity(Intent(applicationContext, PopupActivity::class.java)) }
-        binding.btn3.setOnClickListener { requestPermission() }
-        binding.btn4.setOnClickListener { openFileExplorer() }
-        binding.btn5.setOnClickListener { startActivity(Intent(applicationContext, AdapterTestActivity::class.java)) }
-
+        binding.btn1.apply {
+            text = "Dagger"
+            setOnClickListener { startActivity(Intent(applicationContext, DaggerActivity::class.java)) }
+        }
+        binding.btn2.apply {
+            text = "Popup"
+            setOnClickListener { startActivity(Intent(applicationContext, PopupActivity::class.java)) }
+        }
+        binding.btn3.apply {
+            text = "Permission"
+            setOnClickListener { requestPermission() }
+        }
+        binding.btn4.apply {
+            text = "PickFile"
+            setOnClickListener { openFileExplorer() }
+        }
+        binding.btn5.apply {
+            text = "adapter"
+            setOnClickListener { startActivity(Intent(applicationContext, AdapterTestActivity::class.java)) }
+        }
     }
+
 
     private fun openFileExplorer() {
         val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
@@ -54,7 +68,8 @@ class MainActivity : AppCompatActivity() {
                         val length = inputStream.available()
                         if (length > 0) {
                             val byte = inputStream.read()
-                            Log.i(TAG, "pppick  first byte:$byte  inputStream length: $length  fileName:${name}"
+                            Log.i(
+                                TAG, "pppick  first byte:$byte  inputStream length: $length  fileName:${name}"
                             )
                         } else {
                             Log.i(TAG, "pppick length =====0 inputStream length: $length  fileName:${name}")
@@ -122,9 +137,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             .start()
-
-
-
 
 
 //        PermissionHelper.with(this)

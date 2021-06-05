@@ -33,8 +33,8 @@ class AdapterTestAdapter : HeaderFooterAdapter<AdapterTestItemLayoutBinding, Ite
         val binding = holder.binding
         binding.ivBG.layoutParams.height = item.height.dp
         binding.ivBG.setBackgroundColor(item.color)
-        binding.tvText.text = item.text
-        bindClick(binding.tvText, item)
+        binding.tvText.text = "${item.text}$position"
+        bindClick(binding.tvText, position, item)
     }
 
 }

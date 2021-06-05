@@ -41,8 +41,8 @@ class CommonLoadMoreView : BaseLoadMoreView {
         tvText.visibility = View.INVISIBLE
     }
 
-    override fun setEnable(enable: Boolean) {
-        super.setEnable(enable)
+    override fun setLoadEnable(enable: Boolean) {
+        super.setLoadEnable(enable)
 
         pbLoading.visibility = View.INVISIBLE
         tvText.visibility = View.VISIBLE
