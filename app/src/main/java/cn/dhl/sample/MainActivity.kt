@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.provider.Settings
 import android.util.Log
@@ -38,7 +39,7 @@ class MainActivity : AppCompatActivity() {
             setOnClickListener { requestPermission() }
         }
         binding.btn4.apply {
-            text = "PickFile"
+            text = "PickImage"
             setOnClickListener { openFileExplorer() }
         }
         binding.btn5.apply {
@@ -49,11 +50,15 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun openFileExplorer() {
-        val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
-            addCategory(Intent.CATEGORY_OPENABLE)
-            type = "*/*"
-        }
+//        val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+//            addCategory(Intent.CATEGORY_OPENABLE)
+//            type = "*/*"
+//        }
+//
+//        startActivityForResult(intent, REQUEST_CODE_OPEN_FILE)
 
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        intent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*")
         startActivityForResult(intent, REQUEST_CODE_OPEN_FILE)
     }
 
