@@ -1,9 +1,7 @@
-package cn.dhl.sample.dagger
+package cn.dhl.sample.dagger.di
 
 import android.util.Log
-import cn.dhl.sample.MainActivity
 import dagger.*
-import java.lang.annotation.RetentionPolicy
 import javax.inject.*
 
 
@@ -15,64 +13,41 @@ import javax.inject.*
  *
  */
 
-@Qualifier
-@Retention(AnnotationRetention.RUNTIME)
-annotation class V8
-
-@Qualifier
-@Retention(AnnotationRetention.RUNTIME)
-annotation class V12
-
-@Scope
-@Retention(AnnotationRetention.RUNTIME)
-annotation class Acti1Scope
-
-@Scope
-@Retention(AnnotationRetention.RUNTIME)
-annotation class Acti2Scope
-
 class Engine constructor(){
 
     private var name: String? = null
 
-    @Inject constructor(@Named("v8") name: String): this() {
+    constructor(name: String): this() {
         this.name = name
     }
 
     override fun toString(): String {
-        return "Engine{ name:$name}"
+        return "Engine[${super.toString()}]{ name:$name}"
     }
 
-    fun run() {
-        Log.i("tag", "引擎转起来了~~~ ")
-    }
 }
 
-class Car {
+class Car constructor(private val engine: Engine) {
 
-    public constructor() {
-
+    override fun toString(): String {
+        return "Car[${super.toString()}]: $engine"
     }
 }
 
 @Module
 class EngineModule {
 
-    @Named("v12")
-    @Provides
-    fun getEngineV12(): String {
-        return "v12"
-    }
 
+    @Provides
     @Named("v8")
-    @Provides
-    fun getEngineV8(): String {
-        return "v8"
+    fun provideEngineV8(): Engine {
+        return Engine("v8")
     }
 
     @Provides
-    fun provideEngine(): Engine {
-        return Engine("v3")
+    @Named("v12")
+    fun provideEngineV12(): Engine {
+        return Engine("v12")
     }
 }
 
@@ -80,32 +55,56 @@ class EngineModule {
 class CarModule {
 
     @Provides
-    fun provideCar(): Car {
-        return Car()
+    @Named("v8")
+    fun provideV8Car(@Named("v8") engine: Engine): Car {
+        return Car(engine)
+    }
+
+    @Provides
+    @Named("v12")
+    fun provideV12Car(@Named("v12") engine: Engine): Car {
+        return Car(engine)
     }
 
 }
 
-@Subcomponent(modules = [EngineModule::class])
-interface EngineSubComponent {
-
-    fun inject(activity: DaggerActivity)
-
-    @Subcomponent.Builder
-    interface Builder {
-
-        @BindsInstance
-        fun name(name: String): Builder
-        fun build(): EngineSubComponent
-    }
-}
-
-@Component(modules = [CarModule::class])
-interface CarComponent {
-
-    fun engineComponent(): EngineSubComponent.Builder
-}
+//============= Component dependencies =============
+//@Component(modules = [CarModule::class], dependencies = [EngineComponent::class])
+//interface CarComponent {
+//
+//    fun inject(daggerActi: DaggerActivity)
+//
+//}
+//
+//@Component(modules = [EngineModule::class])
+//interface EngineComponent {
+//
+//    @Named("v8")
+//    fun getEngineV8(): Engine
+//
+//    @Named("v12")
+//    fun getEngineV12(): Engine
+//}
 
 
+//============= Subcomponent =============
+//@Component(modules = [EngineModule::class])
+//interface EngineComponent {
+//
+//    fun carComponent(): CarComponent.Builder
+//}
+//
+//@Subcomponent(modules = [CarModule::class])
+//interface CarComponent {
+//
+//    fun inject(da: DaggerActivity)
+//
+//    @Subcomponent.Builder
+//    interface Builder {
+//        fun build(): CarComponent
+//    }
+//
+//
+//}
 
 

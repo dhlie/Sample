@@ -3,6 +3,9 @@ package cn.dhl.sample
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
+import cn.dhl.sample.di.AppComponent
+import cn.dhl.sample.di.DaggerAppComponent
+import cn.dhl.sample.di.DaggerService
 
 /**
  *
@@ -20,8 +23,23 @@ class App : Application() {
 
     }
 
+    private lateinit var appComponent: AppComponent
+
     override fun onCreate() {
         super.onCreate()
         instance = this
+
+        initDagger()
+    }
+
+    override fun getSystemService(name: String): Any? {
+        if (name == DaggerService.SERVICE_NAME) {
+            return appComponent
+        }
+        return super.getSystemService(name)
+    }
+
+    private fun initDagger() {
+        appComponent = DaggerAppComponent.builder().build()
     }
 }

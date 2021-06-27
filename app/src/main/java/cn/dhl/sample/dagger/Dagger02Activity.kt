@@ -1,11 +1,11 @@
 package cn.dhl.sample.dagger
 
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import cn.dhl.sample.App
 import cn.dhl.sample.dagger.di.Car
+import cn.dhl.sample.dagger.di.Engine
 import cn.dhl.sample.databinding.ActivityMainBinding
 import cn.dhl.sample.di.DaggerService
 import javax.inject.Inject
@@ -18,7 +18,7 @@ import javax.inject.Named
  * Description:
  *
  */
-class DaggerActivity : AppCompatActivity() {
+class Dagger02Activity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
@@ -43,28 +43,9 @@ class DaggerActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        title = "DaggerActivity"
-
-        binding.btn1.apply {
-            text = "Dagger02"
-            setOnClickListener {
-                startActivity(Intent(applicationContext, Dagger02Activity::class.java))
-            }
-        }
-
-        ////============= Component dependencies =============
-        //val engineComponent = DaggerEngineComponent.builder().build()
-        //val carComponent = DaggerCarComponent.builder().engineComponent(engineComponent).build()
-        //carComponent.inject(this)
-        //println("car:$car  car2:$car2")
-
-        ////============= Subcomponent =============
-        //val engineComponent = DaggerEngineComponent.builder().build()
-        //val carComponent = engineComponent.carComponent().build()
-        //carComponent.inject(this)
-        //println("car:$car  car2:$car2")
+        title = "Dagger02Activity"
 
         DaggerService.get(App.instance).inject(this)
-        println("DaggerActivity  car:$car  car2:$car2  car3:$car3  ctx:$appContext")
+        println("Dagger02Activity  car:$car  car2:$car2  car3:$car3  ctx:$appContext")
     }
 }

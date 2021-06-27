@@ -26,6 +26,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".dagger.DaggerActivity" />
+        <activity android:name=".dagger.Dagger02Activity" />
         <activity android:name=".popup.PopupActivity"/>
         <activity android:name=".adaptertest.AdapterTestActivity"/>
     </application>
