@@ -6,6 +6,8 @@ import android.content.Context
 import cn.dhl.sample.di.AppComponent
 import cn.dhl.sample.di.DaggerAppComponent
 import cn.dhl.sample.di.DaggerService
+import com.dhl.base.ActivityTracker
+import com.dhl.base.ContextHolder
 
 /**
  *
@@ -28,6 +30,8 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        ContextHolder.appContext = this
+        ActivityTracker.init(this)
 
         initDagger()
     }

@@ -1,10 +1,11 @@
-package cn.dhl.sample.base
+package com.dhl.base.ui.recyclerview
 
 import android.os.Build
 import android.util.Log
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
+import com.dhl.base.R
 
 /**
  *
@@ -14,13 +15,11 @@ import androidx.viewbinding.ViewBinding
  *
  */
 
-data class TagHolder<K>(val pos: Int, val data: K?)
-
 open class BindingViewHolder<out T : ViewBinding>(val binding: T) : RecyclerView.ViewHolder(binding.root)
 
 abstract class ViewBindingAdapter<T : ViewBinding, K> : RecyclerView.Adapter<BindingViewHolder<T>>() {
 
-    protected var data: List<K>? = null
+    var data: List<K>? = null
     private var clickListener: ((view: View, pos: Int, data: K?) -> Unit)? = null
     private var longClickListener: ((view: View, pos: Int, data: K?) -> Unit)? = null
 
@@ -38,29 +37,29 @@ abstract class ViewBindingAdapter<T : ViewBinding, K> : RecyclerView.Adapter<Bin
         return count
     }
 
-    fun getDataSize(): Int {
-        return data?.size ?: 0
-    }
-
     protected fun bindClick(view: View, pos: Int, data: K?) {
         if (!view.hasOnClickListeners()) {
             view.setOnClickListener { target ->
-                val tag = target.tag as? TagHolder<K> ?: return@setOnClickListener
-                clickListener?.invoke(target, tag.pos, tag.data)
+                val pos = target.getTag(R.id.tag_pos) as? Int ?: return@setOnClickListener
+                val data = target.getTag(R.id.tag_data) as? K
+                clickListener?.invoke(target, pos, data)
             }
         }
-        view.tag = TagHolder(pos, data)
+        view.setTag(R.id.tag_pos, pos)
+        view.setTag(R.id.tag_data, data)
     }
 
     protected fun bindLongClick(view: View, pos: Int, data: K?) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R || !view.hasOnLongClickListeners()) {
             view.setOnLongClickListener { target ->
-                val tag = target.tag as? TagHolder<K> ?: return@setOnLongClickListener false
-                longClickListener?.invoke(target, tag.pos, tag.data)
+                val pos = target.getTag(R.id.tag_pos) as? Int ?: return@setOnLongClickListener false
+                val data = target.getTag(R.id.tag_data) as? K
+                longClickListener?.invoke(target, pos, data)
                 true
             }
         }
-        view.tag = TagHolder(pos, data)
+        view.setTag(R.id.tag_pos, pos)
+        view.setTag(R.id.tag_data, data)
     }
 
     fun setClickListener(listener: (view: View, pos: Int, data: K?) -> Unit) {
@@ -80,6 +79,14 @@ abstract class ViewBindingAdapter<T : ViewBinding, K> : RecyclerView.Adapter<Bin
     fun changeData(data: List<K>?) {
         this.data = data
         notifyDataSetChanged()
+    }
+
+    fun getDataSize(): Int {
+        return data?.size ?: 0
+    }
+
+    fun getData(index: Int): K? {
+        return data?.getOrNull(index)
     }
 
     /**

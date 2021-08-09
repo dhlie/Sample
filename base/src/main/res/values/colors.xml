@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="transparent">#00000000</color>
+    <color name="grey">#A8AAAD</color>
+    <color name="line_bg">#E7E8EA</color>
+    <color name="color_grey">#FF9EA0A3</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <color name="titlebar_background">#2E4CD5</color>
+    <color name="titlebar_textColor">#FFFFFF</color>
+</resources>

@@ -1,4 +1,4 @@
-package cn.dhl.sample.base
+package com.dhl.base.ui.recyclerview
 
 import android.content.Context
 import android.util.AttributeSet
@@ -6,7 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.ProgressBar
 import android.widget.TextView
-import cn.dhl.sample.R
+import com.dhl.base.R
 
 /**
  *
@@ -39,14 +39,19 @@ class CommonLoadMoreView : BaseLoadMoreView {
 
         pbLoading.visibility = View.INVISIBLE
         tvText.visibility = View.INVISIBLE
+        tvText.text = context.getString(R.string.no_more)
     }
 
     override fun setLoadEnable(enable: Boolean) {
         super.setLoadEnable(enable)
 
-        pbLoading.visibility = View.INVISIBLE
-        tvText.visibility = View.VISIBLE
-        tvText.text = "没有更多"
+        if (enable) {
+            pbLoading.visibility = View.VISIBLE
+            tvText.visibility = View.INVISIBLE
+        } else {
+            pbLoading.visibility = View.INVISIBLE
+            tvText.visibility = if (showWhenDisable) View.VISIBLE else View.INVISIBLE
+        }
     }
 
     override fun onLoadingStart() {
@@ -55,8 +60,8 @@ class CommonLoadMoreView : BaseLoadMoreView {
     }
 
     override fun onLoadingFinish() {
-        pbLoading.visibility = View.INVISIBLE
-        tvText.visibility = View.INVISIBLE
+        //pbLoading.visibility = View.INVISIBLE
+        //tvText.visibility = View.INVISIBLE
     }
 
 }

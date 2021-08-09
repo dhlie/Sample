@@ -2,10 +2,10 @@ package cn.dhl.sample.adaptertest
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import cn.dhl.sample.base.BindingViewHolder
-import cn.dhl.sample.base.HeaderFooterAdapter
 import cn.dhl.sample.databinding.AdapterTestItemLayoutBinding
-import cn.dhl.sample.dp
+import com.dhl.base.dp
+import com.dhl.base.ui.recyclerview.BindingViewHolder
+import com.dhl.base.ui.recyclerview.HeaderFooterAdapter
 
 /**
  *

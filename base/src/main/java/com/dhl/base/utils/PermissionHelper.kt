@@ -1,4 +1,4 @@
-package cn.dhl.sample
+package com.dhl.base.utils
 
 import android.Manifest
 import android.content.Context
@@ -7,10 +7,10 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import com.dhl.base.log
 
 /**
  *
@@ -34,7 +34,6 @@ class PermissionHelper(private val activity: FragmentActivity) {
     private var intentCallback: (() -> Unit)? = null
 
     private var rationaleConsumer: RationaleConsumer? = null
-    private var permissionFragment: Fragment? = null
 
     fun permission(vararg perms: String): PermissionHelper {
         val requiredPerms = ArrayList<String>(perms.size)
@@ -112,7 +111,7 @@ class PermissionHelper(private val activity: FragmentActivity) {
         }
 
         if (perms.isEmpty()) {
-            if (DEBUG) log("onAllGranted")
+            log { "onAllGranted" }
             onGranted?.invoke()
             return
         }
@@ -125,20 +124,11 @@ class PermissionHelper(private val activity: FragmentActivity) {
     }
 
     private fun request() {
-        permissionFragment = PermissionHelperFragment().apply { permissionHelper = this@PermissionHelper }
+        val permissionFragment = PermissionHelperFragment().apply { permissionHelper = this@PermissionHelper }
         activity.supportFragmentManager
             .beginTransaction()
-            .add(permissionFragment!!, "PermissionHelperFragment")
+            .add(permissionFragment, "PermissionHelperFragment")
             .commitAllowingStateLoss()
-    }
-
-    private fun done() {
-        permissionFragment?.let {
-            activity.supportFragmentManager
-                .beginTransaction()
-                .remove(it)
-                .commitAllowingStateLoss()
-        }
     }
 
     inner class RationaleConsumer {
@@ -166,9 +156,9 @@ class PermissionHelper(private val activity: FragmentActivity) {
             } else {
                 onRationale!!.invoke(shouldRationalePerms, this)
 
-                if (DEBUG) {
+                log {
                     val list = shouldRationalePerms.map { perm -> permissionToText(perm) }
-                    log("onRationale${list.toListString()}")
+                    "onRationale${list.toListString()}"
                 }
             }
         }
@@ -178,9 +168,25 @@ class PermissionHelper(private val activity: FragmentActivity) {
 
         lateinit var permissionHelper: PermissionHelper
 
+        private fun removeFragment() {
+            val activity = activity
+            if (!isActivityValid(activity)) {
+                return
+            }
+            activity!!.supportFragmentManager
+                .beginTransaction()
+                .remove(this)
+                .commitAllowingStateLoss()
+        }
+
         override fun onCreate(savedInstanceState: Bundle?) {
             super.onCreate(savedInstanceState)
-            if (DEBUG) log("onCreate")
+            log {"onCreate" }
+
+            if (!::permissionHelper.isInitialized) {
+                removeFragment()
+                return
+            }
 
             if (permissionHelper.intent != null) {
                 startActivityForResult(permissionHelper.intent, REQUEST_CODE)
@@ -191,20 +197,20 @@ class PermissionHelper(private val activity: FragmentActivity) {
 
         override fun onDestroy() {
             super.onDestroy()
-            if (DEBUG) log("onDestroy")
+            log {"onDestroy" }
         }
 
         override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
             super.onActivityResult(requestCode, resultCode, data)
             if (requestCode == REQUEST_CODE) {
-                permissionHelper.done()
+                removeFragment()
                 permissionHelper.intentCallback?.invoke()
             }
         }
 
         override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
             if (requestCode == REQUEST_CODE) {
-                permissionHelper.done()
+                removeFragment()
                 if (grantResults.isEmpty()) {
                     return
                 }
@@ -229,13 +235,13 @@ class PermissionHelper(private val activity: FragmentActivity) {
 
                 if (deniedPerms.isNullOrEmpty() && noAskAgainPerms.isNullOrEmpty()) {
                     permissionHelper.onGranted?.invoke()
-                    if (DEBUG) log("onAllGranted")
+                    log {"onAllGranted" }
                 } else {
                     permissionHelper.onDenied?.invoke(deniedPerms, noAskAgainPerms)
-                    if (DEBUG) {
+                    log {
                         val list = deniedPerms?.map { perm -> permissionToText(perm) }
                         val noAskAgainList = noAskAgainPerms?.map { perm -> permissionToText(perm) }
-                        log("onDenied:${list?.toListString()}, noAskAgain:${noAskAgainList?.toListString()}")
+                        "onDenied:${list?.toListString()}, noAskAgain:${noAskAgainList?.toListString()}"
                     }
                 }
             }
@@ -245,7 +251,6 @@ class PermissionHelper(private val activity: FragmentActivity) {
     companion object {
         private const val REQUEST_CODE = 0x41F8
         private const val INTENT_ACTION_PERMISSION_GRANTED = "permission.action.GRANTED"
-        private const val DEBUG = true
 
         fun with(activity: FragmentActivity): PermissionHelper {
             return PermissionHelper(activity)
@@ -257,12 +262,6 @@ class PermissionHelper(private val activity: FragmentActivity) {
                 Uri.parse("package:${context.packageName}")
             )
             context.startActivity(intent)
-        }
-
-        fun log(msg: String) {
-            if (DEBUG) {
-                Log.i("PermissionHelper", msg)
-            }
         }
 
         fun permissionToText(perm: String): String {

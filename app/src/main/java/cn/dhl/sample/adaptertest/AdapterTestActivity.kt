@@ -7,10 +7,10 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import cn.dhl.sample.base.BaseLoadMoreView
-import cn.dhl.sample.base.CommonLoadMoreView
 import cn.dhl.sample.databinding.ActivityAdapterTestBinding
-import cn.dhl.sample.dp
+import com.dhl.base.dp
+import com.dhl.base.ui.recyclerview.BaseLoadMoreView
+import com.dhl.base.ui.recyclerview.CommonLoadMoreView
 import kotlin.random.Random
 
 /**
@@ -128,7 +128,11 @@ class AdapterTestActivity : AppCompatActivity() {
 
     private fun initRecyclerView() {
         binding.rvList.layoutManager = LinearLayoutManager(applicationContext, RecyclerView.VERTICAL, false)
-        adapter = AdapterTestAdapter()
+        adapter = AdapterTestAdapter().apply {
+            loadMoreView = CommonLoadMoreView(this@AdapterTestActivity).apply {
+                setLoadMoreCallback { loadMore() }
+            }
+        }
 
         val header1 = TextView(this).apply {
             text = "Header 1"
@@ -211,10 +215,10 @@ class AdapterTestActivity : AppCompatActivity() {
         binding.root.postDelayed({
             val data = getDataList()
             adapter.addData(data)
-            loadMoreView?.finishLoading()
+            adapter.finishLoadingMore()
 
             if (count >= 20) {
-                loadMoreView?.setLoadEnable(false)
+                adapter.setLoadMoreEnable(false)
             }
         }, 1000)
     }

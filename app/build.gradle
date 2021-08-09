@@ -5,13 +5,13 @@ plugins {
 }
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion "30.0.3"
+    compileSdkVersion build_versions.compile_sdk
+    buildToolsVersion build_versions.build_tools
 
     defaultConfig {
         applicationId "cn.dhl.sample"
-        minSdkVersion 23
-        targetSdkVersion 30
+        minSdkVersion build_versions.min_sdk
+        targetSdkVersion build_versions.target_sdk
         versionCode 1
         versionName "1.0"
     }
@@ -47,22 +47,19 @@ android {
 }
 
 dependencies {
-    testImplementation 'junit:junit:4.13.2'
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+    implementation project(path: ':base')
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'androidx.core:core-ktx:1.3.2'
-    implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'com.google.android.material:material:1.2.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
-    implementation 'androidx.recyclerview:recyclerview:1.2.0'
+    implementation deps.kotlin_stdlib
+    implementation deps.kotlinx_coroutines
+    implementation deps.kotlinx_coroutines_android
 
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3"
+    implementation deps.androidx_core
+    implementation deps.appcompat
+    implementation deps.material
+    implementation deps.constraintlayout
+    implementation deps.recyclerview
 
-//    implementation 'com.google.dagger:dagger-android:2.35.1'
-//    implementation 'com.google.dagger:dagger-android-support:2.x' // if you use the support libraries
-//    annotationProcessor 'com.google.dagger:dagger-android-processor:2.x'
-//    kapt 'com.google.dagger:dagger-compiler:2.35.1'
-
-    implementation 'com.google.dagger:dagger:2.37'
-    kapt 'com.google.dagger:dagger-compiler:2.37'
+    implementation deps.dagger
+    kapt deps.dagger_compiler
 }

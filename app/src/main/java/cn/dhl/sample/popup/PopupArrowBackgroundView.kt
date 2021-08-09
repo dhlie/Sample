@@ -6,7 +6,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.util.AttributeSet
 import android.widget.FrameLayout
-import cn.dhl.sample.dp
+import com.dhl.base.dp
 import kotlin.math.max
 import kotlin.math.min
 

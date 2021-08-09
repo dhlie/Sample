@@ -5,8 +5,8 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupWindow
-import cn.dhl.sample.appWindowHeight
-import cn.dhl.sample.statusBarHeight
+import com.dhl.base.appWindowHeight
+import com.dhl.base.statusBarHeight
 
 /**
  *

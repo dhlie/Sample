@@ -1,4 +1,4 @@
-package cn.dhl.sample.base
+package com.dhl.base.ui.recyclerview
 
 import android.content.Context
 import android.util.AttributeSet
@@ -26,9 +26,15 @@ abstract class BaseLoadMoreView : FrameLayout {
         const val STATE_LOADING = 1
     }
 
+    /**是否能加载更多*/
     private var loadEnable: Boolean = true
+    /**不能加载更多时是否显示*/
+    internal var showWhenDisable = true
     private var state: Int = STATE_IDLE
     private var loadMoreCallback: (() -> Unit)? = null
+
+    var loadingId: String? = null
+
 
     constructor(context: Context) : super(context)
 
@@ -37,10 +43,14 @@ abstract class BaseLoadMoreView : FrameLayout {
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr)
 
 
-    abstract fun onLoadingStart()
-    abstract fun onLoadingFinish()
+    protected abstract fun onLoadingStart()
+    protected abstract fun onLoadingFinish()
 
-    open fun setLoadEnable(enable: Boolean) {
+    internal fun isLoadEnable(): Boolean {
+        return loadEnable
+    }
+
+    internal open fun setLoadEnable(enable: Boolean) {
         loadEnable = enable
     }
 
@@ -48,7 +58,7 @@ abstract class BaseLoadMoreView : FrameLayout {
         loadMoreCallback = callback
     }
 
-    fun startLoading() {
+    internal fun startLoading() {
         if (!loadEnable) {
             return
         }
@@ -60,28 +70,32 @@ abstract class BaseLoadMoreView : FrameLayout {
         loadMoreCallback?.invoke()
     }
 
-    fun finishLoading() {
-        if (!loadEnable) {
-            return
+    internal fun finishLoading() {
+        if (state != STATE_IDLE) {
+            state = STATE_IDLE
+            onLoadingFinish()
         }
-        state = STATE_IDLE
-        onLoadingFinish()
     }
 }
 
-abstract class HeaderFooterAdapter<T: ViewBinding, K>(private val orientation: Int = LinearLayout.VERTICAL) : ViewBindingAdapter<ViewBinding, K>() {
+abstract class HeaderFooterAdapter<T : ViewBinding, K>(private val orientation: Int = LinearLayout.VERTICAL) : ViewBindingAdapter<ViewBinding, K>() {
 
     companion object {
+        const val TYPE_UNKNOWN = 10000
         const val TYPE_HEADER = 10001
         const val TYPE_ITEM = 10002
         const val TYPE_FOOTER = 10003
         const val TYPE_LOAD_MORE = 10004
+
+        const val TYPE_ITEM_PARENT = 10005      //可展开 item 的父节点
+        const val TYPE_ITEM_CHILD = 10006       //可展开 item 的子节点
     }
 
     private var headerLayout: LinearLayout? = null
     private var footerLayout: LinearLayout? = null
     var loadMoreView: BaseLoadMoreView? = null
         set(value) {
+            if (loadMoreView == value) return
             field = value?.apply {
                 layoutParams = if (orientation == LinearLayout.VERTICAL) {
                     RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
@@ -92,6 +106,10 @@ abstract class HeaderFooterAdapter<T: ViewBinding, K>(private val orientation: I
             notifyItemChanged(getFooterViewPosition())
         }
 
+    var loadMoreId: String?
+        get() = loadMoreView?.loadingId
+        set(value) { loadMoreView?.loadingId = value }
+
     override fun getItemViewType(position: Int): Int {
         val hasHeader = hasHeaderView()
         val hasFooter = hasFooterView()
@@ -100,21 +118,21 @@ abstract class HeaderFooterAdapter<T: ViewBinding, K>(private val orientation: I
         val itemCount = itemCount
         if (!hasLoadMore) {
             return if (!hasHeader && !hasFooter) {
-                TYPE_ITEM
+                return getItemType(position)
             } else if (hasHeader && !hasFooter) {
-                if (position == 0) TYPE_HEADER else TYPE_ITEM
+                if (position == 0) TYPE_HEADER else getItemType(position - 1)
             } else if (!hasHeader && hasFooter) {
-                if (position == itemCount - 1) TYPE_FOOTER else TYPE_ITEM
+                if (position == itemCount - 1) TYPE_FOOTER else getItemType(position)
             } else {
                 when (position) {
                     0 -> TYPE_HEADER
                     itemCount - 1 -> TYPE_FOOTER
-                    else -> TYPE_ITEM
+                    else -> getItemType(position - 1)
                 }
             }
         } else {
             return if (!hasHeader && !hasFooter) {
-                if (position == itemCount - 1) TYPE_LOAD_MORE else TYPE_ITEM
+                if (position == itemCount - 1) TYPE_LOAD_MORE else getItemType(position)
             } else if (hasHeader && !hasFooter) {
                 when (position) {
                     0 -> {
@@ -124,21 +142,21 @@ abstract class HeaderFooterAdapter<T: ViewBinding, K>(private val orientation: I
                         TYPE_LOAD_MORE
                     }
                     else -> {
-                        TYPE_ITEM
+                        getItemType(position - 1)
                     }
                 }
             } else if (!hasHeader && hasFooter) {
                 when (position) {
                     itemCount - 1 -> TYPE_LOAD_MORE
                     itemCount - 2 -> TYPE_FOOTER
-                    else -> TYPE_ITEM
+                    else -> getItemType(position)
                 }
             } else {
                 when (position) {
                     0 -> TYPE_HEADER
                     itemCount - 1 -> TYPE_LOAD_MORE
                     itemCount - 2 -> TYPE_FOOTER
-                    else -> TYPE_ITEM
+                    else -> getItemType(position - 1)
                 }
             }
         }
@@ -155,8 +173,7 @@ abstract class HeaderFooterAdapter<T: ViewBinding, K>(private val orientation: I
             TYPE_LOAD_MORE -> HeaderFooterViewHolder(loadMoreView!!).apply {
                 (loadMoreView?.parent as? ViewGroup)?.run { removeView(loadMoreView) }
             }
-            TYPE_ITEM -> onCreateItemViewHolder(parent, viewType)
-            else -> BindingViewHolder(ViewBinding { View(parent.context) })
+            else -> onCreateItemViewHolder(parent, viewType)
         }
     }
 
@@ -181,6 +198,11 @@ abstract class HeaderFooterAdapter<T: ViewBinding, K>(private val orientation: I
     abstract fun onCreateItemViewHolder(parent: ViewGroup, viewType: Int): BindingViewHolder<T>
     abstract fun onBindItemViewHolder(holder: BindingViewHolder<T>, position: Int)
 
+    /**
+     * @param posInData data 中的 position
+     */
+    protected open fun getItemType(posInData: Int) = TYPE_ITEM
+
     override fun hasHeaderView(): Boolean {
         val count = headerLayout?.childCount ?: 0
         return count > 0
@@ -192,7 +214,26 @@ abstract class HeaderFooterAdapter<T: ViewBinding, K>(private val orientation: I
     }
 
     override fun hasLoadMoreView(): Boolean {
-        return loadMoreView != null
+        val loadMoreView = loadMoreView ?: return false
+        return (loadMoreView.isLoadEnable() || loadMoreView.showWhenDisable) && !data.isNullOrEmpty()
+    }
+
+    fun setLoadMoreEnable(enable: Boolean) {
+        val hasLoadMoreView = hasLoadMoreView()
+        loadMoreView?.setLoadEnable(enable)
+        if (hasLoadMoreView != hasLoadMoreView()) {
+            notifyItemChanged(getFooterViewPosition())
+        }
+    }
+
+    fun finishLoadingMore() {
+        loadMoreView?.finishLoading()
+    }
+
+    fun resetLoadMoreStatus() {
+        setLoadMoreEnable(false)
+        loadMoreView?.finishLoading()
+        loadMoreView?.loadingId = null
     }
 
     fun addHeaderView(view: View, index: Int = -1) {

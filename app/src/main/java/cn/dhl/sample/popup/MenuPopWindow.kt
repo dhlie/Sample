@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
-import cn.dhl.sample.dp
+import com.dhl.base.dp
 import java.lang.RuntimeException
 
 /**

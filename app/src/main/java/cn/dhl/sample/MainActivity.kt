@@ -11,13 +11,14 @@ import android.provider.OpenableColumns
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import cn.dhl.sample.adaptertest.AdapterTestActivity
 import cn.dhl.sample.dagger.DaggerActivity
 import cn.dhl.sample.databinding.ActivityMainBinding
 import cn.dhl.sample.popup.PopupActivity
+import com.dhl.base.ui.BaseActivity
+import com.dhl.base.utils.PermissionHelper
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity() {
 
     private lateinit var binding: ActivityMainBinding
 

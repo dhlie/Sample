@@ -1,0 +1,4 @@
+<resources xmlns:tools="http://schemas.android.com/tools"  tools:ignore="MissingTranslation">
+    <string name="app_name">App</string>
+    <string name="no_more">没有更多</string>
+</resources>

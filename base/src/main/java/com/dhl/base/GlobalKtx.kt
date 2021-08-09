@@ -1,37 +1,33 @@
-package cn.dhl.sample
+package com.dhl.base
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.graphics.Point
+import android.util.Log
 import android.util.TypedValue
 import android.view.WindowManager
-import androidx.recyclerview.widget.RecyclerView
-import androidx.viewbinding.ViewBinding
+import com.dhl.base.utils.Logger
+import java.io.Serializable
 
 /**
  *
- * Author: duanhl
- * Create: 2021/4/11 5:15 PM
+ * Author: duanhaoliang
+ * Create: 2021/4/9 9:08
  * Description:
  *
  */
 
-/**
- * 屏幕宽度
- */
 val screenWidth: Int
     get() {
-        val wm = App.instance.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        val wm = ContextHolder.appContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         val point = Point()
         wm.defaultDisplay.getRealSize(point)
         return point.x
     }
 
-/**
- * 屏幕高度
- */
 val screenHeight: Int
     get() {
-        val wm = App.instance.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        val wm = ContextHolder.appContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         val point = Point()
         wm.defaultDisplay.getRealSize(point)
         return point.y
@@ -42,7 +38,7 @@ val screenHeight: Int
  */
 val appWindowWidth: Int
     get() {
-        val wm = App.instance.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        val wm = ContextHolder.appContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         val point = Point()
         wm.defaultDisplay.getSize(point)
         return point.x
@@ -53,7 +49,7 @@ val appWindowWidth: Int
  */
 val appWindowHeight: Int
     get() {
-        val wm = App.instance.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        val wm = ContextHolder.appContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         val point = Point()
         wm.defaultDisplay.getSize(point)
         return point.y
@@ -61,8 +57,8 @@ val appWindowHeight: Int
 
 val statusBarHeight: Int
     get() {
-        val resourceId: Int = App.instance.resources.getIdentifier("status_bar_height", "dimen", "android")
-        return App.instance.resources.getDimensionPixelSize(resourceId)
+        val resourceId: Int = ContextHolder.appContext.resources.getIdentifier("status_bar_height", "dimen", "android")
+        return ContextHolder.appContext.resources.getDimensionPixelSize(resourceId)
     }
 
 /**
@@ -73,7 +69,7 @@ val Int.dp: Int
         val f = TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP,
             this.toFloat(),
-            App.instance.resources.displayMetrics
+            ContextHolder.appContext.resources.displayMetrics
         )
         val res = if (f >= 0) f + 0.5f else f - 0.5f
         if (res != 0f) return res.toInt()
@@ -90,7 +86,7 @@ val Float.dp: Int
         val f = TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP,
             this,
-            App.instance.resources.displayMetrics
+            ContextHolder.appContext.resources.displayMetrics
         )
         val res = if (f >= 0) f + 0.5f else f - 0.5f
         if (res != 0f) return res.toInt()
@@ -106,7 +102,7 @@ val Int.sp: Float
     get() = TypedValue.applyDimension(
         TypedValue.COMPLEX_UNIT_SP,
         this.toFloat(),
-        App.instance.resources.displayMetrics
+        ContextHolder.appContext.resources.displayMetrics
     )
 
 /**
@@ -116,7 +112,40 @@ val Float.sp: Float
     get() = TypedValue.applyDimension(
         TypedValue.COMPLEX_UNIT_SP,
         this,
-        App.instance.resources.displayMetrics
+        ContextHolder.appContext.resources.displayMetrics
     )
 
-class BindingViewHolder<T : ViewBinding>(val binding: T) : RecyclerView.ViewHolder(binding.root)
+internal inline fun SharedPreferences.commit(crossinline exec: SharedPreferences.Editor.() -> Unit) {
+    val editor = this.edit()
+    editor.exec()
+    editor.apply()
+}
+
+data class MutablePair<A, B>(var first: A, var second: B) : Serializable {
+    override fun toString(): String = "MutablePair($first, $second)"
+}
+
+fun <K> MutableList<K>.addList(list: List<K>?) {
+    if (list.isNullOrEmpty()) {
+        return
+    }
+    addAll(list)
+}
+
+inline fun log(level: Int = Log.INFO, block: () -> String?) {
+    if (Logger.PRINT_LOG) {
+        when (level) {
+            Log.VERBOSE -> Logger.v(block.invoke())
+            Log.DEBUG -> Logger.d(block.invoke())
+            Log.INFO -> Logger.i(block.invoke())
+            Log.WARN -> Logger.w(block.invoke())
+            Log.ERROR -> Logger.e(block.invoke())
+        }
+    }
+}
+
+inline fun logJson(block: () -> Any?) {
+    if (Logger.PRINT_LOG) {
+        Logger.json(block.invoke())
+    }
+}
