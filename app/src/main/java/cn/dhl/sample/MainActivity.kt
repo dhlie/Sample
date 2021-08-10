@@ -14,6 +14,7 @@ import android.widget.Toast
 import cn.dhl.sample.adaptertest.AdapterTestActivity
 import cn.dhl.sample.dagger.DaggerActivity
 import cn.dhl.sample.databinding.ActivityMainBinding
+import cn.dhl.sample.down.DownActivity
 import cn.dhl.sample.popup.PopupActivity
 import com.dhl.base.ui.BaseActivity
 import com.dhl.base.utils.PermissionHelper
@@ -24,6 +25,7 @@ class MainActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        titleBar?.leftView = null
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -46,6 +48,10 @@ class MainActivity : BaseActivity() {
         binding.btn5.apply {
             text = "adapter"
             setOnClickListener { startActivity(Intent(applicationContext, AdapterTestActivity::class.java)) }
+        }
+        binding.btn6.apply {
+            text = "download"
+            setOnClickListener { startActivity(Intent(applicationContext, DownActivity::class.java)) }
         }
     }
 

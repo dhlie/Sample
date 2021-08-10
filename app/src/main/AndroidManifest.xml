@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="cn.dhl.sample">
 
+    <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
@@ -29,6 +30,7 @@
         <activity android:name=".dagger.Dagger02Activity" />
         <activity android:name=".popup.PopupActivity"/>
         <activity android:name=".adaptertest.AdapterTestActivity"/>
+        <activity android:name=".down.DownActivity"/>
     </application>
 
 </manifest>

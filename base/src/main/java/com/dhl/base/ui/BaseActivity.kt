@@ -4,11 +4,12 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.content.res.AppCompatResources
 import com.dhl.base.R
 
 abstract class BaseActivity : AppCompatActivity() {
 
-    protected lateinit var titleBar: TitleBar
+    protected var titleBar: TitleBar? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -16,6 +17,15 @@ abstract class BaseActivity : AppCompatActivity() {
 
         val layout = layoutInflater.inflate(R.layout.activity_base, null)
         titleBar = layout.findViewById(R.id.titlebar)
+        titleBar?.apply {
+            setLeftBtn(AppCompatResources.getDrawable(applicationContext, R.drawable.ic_back), null)
+            setTitle(getString(R.string.app_name))
+            setTitleBarClickListener(object : TitleBar.SimpleTitleBarClickListener() {
+                override fun onLeftClick(v: View?) {
+                    finish()
+                }
+            })
+        }
         super.setContentView(layout)
     }
 

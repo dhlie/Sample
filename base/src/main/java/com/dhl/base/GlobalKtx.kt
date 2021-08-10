@@ -132,20 +132,20 @@ fun <K> MutableList<K>.addList(list: List<K>?) {
     addAll(list)
 }
 
-inline fun log(level: Int = Log.INFO, block: () -> String?) {
+inline fun log(tag: String = "", level: Int = Log.INFO, block: () -> String) {
     if (Logger.PRINT_LOG) {
         when (level) {
-            Log.VERBOSE -> Logger.v(block.invoke())
-            Log.DEBUG -> Logger.d(block.invoke())
-            Log.INFO -> Logger.i(block.invoke())
-            Log.WARN -> Logger.w(block.invoke())
-            Log.ERROR -> Logger.e(block.invoke())
+            Log.VERBOSE -> Logger.v(tag, block.invoke())
+            Log.DEBUG -> Logger.d(tag, block.invoke())
+            Log.INFO -> Logger.i(tag, block.invoke())
+            Log.WARN -> Logger.w(tag, block.invoke())
+            Log.ERROR -> Logger.e(tag, block.invoke())
         }
     }
 }
 
-inline fun logJson(block: () -> Any?) {
+inline fun logJson(tag: String = "", block: () -> Any?) {
     if (Logger.PRINT_LOG) {
-        Logger.json(block.invoke())
+        Logger.json(tag, block.invoke())
     }
 }

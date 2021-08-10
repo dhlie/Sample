@@ -11,8 +11,6 @@
     <com.dhl.base.ui.TitleBar
         android:id="@+id/titlebar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:leftDrawable="@mipmap/ic_menu_back"
-        app:titleText="@string/app_name" />
+        android:layout_height="wrap_content" />
 
 </LinearLayout>
