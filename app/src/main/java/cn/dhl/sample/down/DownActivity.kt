@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
  */
 class DownActivity : BaseActivity() {
 
-    lateinit var binding: ActivityDownBinding
+    private lateinit var binding: ActivityDownBinding
     private val maniScope = MainScope()
 
     override fun onCreate(savedInstanceState: Bundle?) {

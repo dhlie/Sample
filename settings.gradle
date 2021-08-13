@@ -1,3 +1,4 @@
 include ':app'
 include ':base'
+include ':downloader'
 rootProject.name = "Sample"

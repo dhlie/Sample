@@ -47,6 +47,13 @@ deps.navigation_ui_ktx = "androidx.navigation:navigation-ui-ktx:$nav_version"
 deps.navigation_safe_args_gradle_plugin = "androidx.navigation:navigation-safe-args-gradle-plugin:$nav_version"
 
 deps.swiperefreshlayout = "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
+
+def room_version = "2.3.0"
+deps.room = "androidx.room:room-runtime:$room_version"
+// To use Kotlin annotation processing tool (kapt)
+deps.room_compiler = "androidx.room:room-compiler:$room_version"
+// optional - Kotlin Extensions and Coroutines support for Room
+deps.room_ktx = "androidx.room:room-ktx:$room_version"
 //-------------------- jetpack library ------------------------
 
 def okhttp_version = "4.9.1"
