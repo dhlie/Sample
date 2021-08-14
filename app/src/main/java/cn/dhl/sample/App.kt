@@ -8,6 +8,7 @@ import cn.dhl.sample.di.DaggerAppComponent
 import cn.dhl.sample.di.DaggerService
 import com.dhl.base.ActivityTracker
 import com.dhl.base.ContextHolder
+import com.dhl.base.downloader.DownloadManager
 
 /**
  *
@@ -34,6 +35,7 @@ class App : Application() {
         ActivityTracker.init(this)
 
         initDagger()
+        DownloadManager.instance.schedule()
     }
 
     override fun getSystemService(name: String): Any? {

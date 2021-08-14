@@ -10,7 +10,7 @@ package com.dhl.base.downloader
 interface DownloadListener {
 
     /**
-     * 等待下载
+     * 等待下载开始
      */
     fun onPending(taskInfo: TaskInfo)
 

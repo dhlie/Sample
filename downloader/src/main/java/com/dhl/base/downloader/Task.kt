@@ -12,6 +12,11 @@ interface Task {
     val taskInfo: TaskInfo
 
     /**
+     * 任务转为 pending 状态
+     */
+    fun pending()
+
+    /**
      * 开始任务
      */
     fun start()

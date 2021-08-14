@@ -21,42 +21,108 @@ import java.io.RandomAccessFile
  */
 open class DownloadTask constructor(override val taskInfo: TaskInfo) : Task {
 
+    interface TaskListener {
+        /**
+         * 等待开始下载
+         */
+        fun onPending(task: DownloadTask)
+
+        /**
+         * 下载开始
+         */
+        fun onStart(task: DownloadTask): Boolean
+
+        /**
+         * 下载停止
+         */
+        fun onStop(task: DownloadTask)
+
+        /**
+         * 下载进度更新
+         * @return true - 更新成功, false - 更新失败
+         */
+        fun onProgressChanged(task: DownloadTask, downBytes: Long, totalBytes: Long)
+
+        /**
+         * 保存文件大小
+         * @return true - 保存成功, false - 保存失败
+         */
+        fun onSaveFileLength(task: DownloadTask, length: Long): Boolean
+
+        /**
+         * 下载完成
+         */
+        fun onFinish(task: DownloadTask)
+
+        /**
+         * 下载失败
+         */
+        fun onError(task: DownloadTask, errorCode: Int)
+
+        /**
+         * 任务被删除
+         * @param hasClearUp 下载中产生的临时文件是否被清理完毕
+         */
+        fun onDelete(task: DownloadTask, hasClearUp: Boolean)
+    }
+
     private var status = TaskInfo.TaskStatus.PENDING
     private var downLength: Long = 0L
     private var totalLength: Long = -1L
+    private var tmpFile: File? = null
 
-    var listener: DownloadListener? = null
+    var listener: TaskListener? = null
 
-    private fun createTempFile(): File? {
-        //创建临时文件保存目录
-        val tmpDir = File(DownloadProvider.instance.tempFileSavedDir(taskInfo.filePath))
-        if (!tmpDir.exists()) {
-            tmpDir.mkdirs()
+    private fun getTempFile(): File? {
+        if (tmpFile == null) {
+            //创建临时文件保存目录
+            val tmpDir = File(DownloadProvider.instance.tempFileSavedDir(taskInfo.filePath))
             if (!tmpDir.exists()) {
-                return null
+                tmpDir.mkdirs()
+                if (!tmpDir.exists()) {
+                    return null
+                }
             }
+            //创建临时文件
+            val fileName = FileUtil.getFileName(taskInfo.filePath)
+            tmpFile = File(tmpDir, "$fileName.tmp")
         }
-        //创建临时文件
-        val fileName = FileUtil.getFileName(taskInfo.filePath)
-        return File(tmpDir, "$fileName.tmp")
+        return tmpFile
     }
 
     override fun start() {
         onStart()
 
-        val tempFile = createTempFile()
+        //任务开启失败
+        synchronized(this@DownloadTask) {
+            if (status != TaskInfo.TaskStatus.RUNNING) {
+                onError(TaskInfo.ERROR_CANNOT_START)
+                return
+            }
+        }
+
+        val tempFile = getTempFile()
         if (tempFile == null) {
             onError(TaskInfo.ERROR_MKDIR)
             return
         }
+
         downLength = tempFile.length()
+        taskInfo.downBytes = downLength
+        val request: Request = try {
+            val builder = Request.Builder()
+                .url(taskInfo.url)
+                .header("Range", "bytes=${downLength}-")
+            taskInfo.header?.forEach { entry ->
+                builder.header(entry.key, entry.value)
+            }
 
-        val request: Request = Request.Builder()
-            .url(taskInfo.url)
-            .header("Range", "bytes=$downLength-")
-            .build()
+            builder.build()
+        } catch (e: Exception) {
+            onError(TaskInfo.ERROR_URL)
+            return
+        }
         val okHttpClient = DownloadProvider.instance.provideOkHttpClient()
-
         okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 e.printStackTrace()
@@ -78,13 +144,29 @@ open class DownloadTask constructor(override val taskInfo: TaskInfo) : Task {
 
     override fun stop() {
         synchronized(this@DownloadTask) {
-            status = TaskInfo.TaskStatus.PAUSED
+            if (status == TaskInfo.TaskStatus.RUNNING || status == TaskInfo.TaskStatus.PENDING) {
+                status = TaskInfo.TaskStatus.PAUSED
+            }
         }
     }
 
     override fun delete() {
         synchronized(this@DownloadTask) {
-            status = TaskInfo.TaskStatus.DELETING
+            if (status == TaskInfo.TaskStatus.RUNNING) {
+                status = TaskInfo.TaskStatus.DELETING
+            } else {
+                onDelete(getTempFile())
+            }
+        }
+    }
+
+    override fun pending() {
+        synchronized(this@DownloadTask) {
+            if (status == TaskInfo.TaskStatus.RUNNING) {
+                status = TaskInfo.TaskStatus.PENDING
+            } else {
+                onPending()
+            }
         }
     }
 
@@ -105,7 +187,12 @@ open class DownloadTask constructor(override val taskInfo: TaskInfo) : Task {
                 return
             }
             totalLength = if (downLength == 0L) {
-                body.contentLength()
+                taskInfo.totalBytes = body.contentLength()
+                if (listener?.onSaveFileLength(this, taskInfo.totalBytes) == false) {
+                    onError(TaskInfo.ERROR_SAVE_LENGTH)
+                    return
+                }
+                taskInfo.totalBytes
             } else {
                 taskInfo.totalBytes
             }
@@ -114,18 +201,28 @@ open class DownloadTask constructor(override val taskInfo: TaskInfo) : Task {
             while (true) {
 
                 synchronized(this@DownloadTask) {
-                    if (status == TaskInfo.TaskStatus.PAUSED) {
-                        onStop()
-                        return
-                    } else if (status == TaskInfo.TaskStatus.DELETING) {
-                        onDelete(file)
-                        return
+                    when (status) {
+                        TaskInfo.TaskStatus.PAUSED -> {
+                            onStop()
+                            return
+                        }
+                        TaskInfo.TaskStatus.DELETING -> {
+                            onDelete(file)
+                            return
+                        }
+                        TaskInfo.TaskStatus.PENDING -> {
+                            onPending()
+                            return
+                        }
+                        else -> Unit
                     }
                 }
 
                 val len = inputStream.read(buffer, 0, buffer.size)
                 if (len == -1) {
-                    if (taskInfo.totalBytes != -1L && taskInfo.totalBytes == outFile?.length()) {
+                    if (totalLength == -1L/**流大小未知*/ ||
+                        (totalLength == downLength && totalLength == file.length())
+                    ) {
                         if (file.renameTo(File(taskInfo.filePath))) {
                             onFinish()
                         } else {
@@ -143,7 +240,7 @@ open class DownloadTask constructor(override val taskInfo: TaskInfo) : Task {
                 outFile?.fd?.sync()
                 downLength += len
                 taskInfo.downBytes = downLength
-                listener?.onProgressChanged(taskInfo, downLength, taskInfo.totalBytes)
+                listener?.onProgressChanged(this, downLength, taskInfo.totalBytes)
             }
         } catch (e: Exception) {
             onError(TaskInfo.ERROR_IO)
@@ -157,32 +254,46 @@ open class DownloadTask constructor(override val taskInfo: TaskInfo) : Task {
         synchronized(this@DownloadTask) {
             status = TaskInfo.TaskStatus.RUNNING
         }
-        listener?.onStart(taskInfo)
+        val result = listener?.onStart(this)
+        if (result == false) {
+            synchronized(this@DownloadTask) {
+                status = TaskInfo.TaskStatus.ERROR
+            }
+        }
     }
 
     private fun onStop() {
-        listener?.onStop(taskInfo)
+        listener?.onStop(this)
     }
 
     private fun onFinish() {
         synchronized(this@DownloadTask) {
             status = TaskInfo.TaskStatus.FINISH
         }
-        listener?.onFinish(taskInfo)
+        listener?.onFinish(this)
     }
 
     private fun onError(errorCode: Int) {
         synchronized(this@DownloadTask) {
-            status = TaskInfo.TaskStatus.ERROR
+            if (status == TaskInfo.TaskStatus.DELETING) {
+                onDelete(getTempFile())
+            } else {
+                status = TaskInfo.TaskStatus.ERROR
+                listener?.onError(this, errorCode)
+            }
         }
-        listener?.onError(taskInfo, errorCode)
     }
 
-    private fun onDelete(file: File) {
-        file.delete()
-        if (!file.exists()) {
-            listener?.onDelete(taskInfo)
+    private fun onDelete(file: File?) {
+        file?.delete()
+        listener?.onDelete(this, file?.exists() != true)
+    }
+
+    private fun onPending() {
+        synchronized(this@DownloadTask) {
+            status = TaskInfo.TaskStatus.PENDING
         }
+        listener?.onPending(this)
     }
 
 }

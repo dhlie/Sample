@@ -2,11 +2,11 @@ package com.dhl.base.downloader
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.dhl.base.downloader.TaskInfo.Companion.COLUMN_URL
 import com.dhl.base.downloader.db.DownloadDatabase
-import com.dhl.base.utils.FileUtil
 
 /**
  *
@@ -41,6 +41,9 @@ class TaskInfo {
         const val ERROR_FILE_LENGTH = 4                 //文件大小和 content-length 不一致
         const val ERROR_MKDIR = 5                       //创建目录失败
         const val ERROR_RENAME = 6                      //下载完重命名失败
+        const val ERROR_URL = 7                         //url 不合法
+        const val ERROR_SAVE_LENGTH = 8                 //保存文件大小失败(修改数据库失败)
+        const val ERROR_CANNOT_START = 9                //无法开启任务(修改数据库任务状态失败)
     }
 
     /**
@@ -96,7 +99,7 @@ class TaskInfo {
     var fileType: FileType = FileType.UNKNOWN       //文件类型
 
     @ColumnInfo(name = COLUMN_VISIBLE)
-    var visible: Boolean = true                     //下载任务是否可见(后台静默下载)
+    var visible: Boolean = true                     //下载任务是否可见(后台静默下载),后台任务不受最大同时下载个数限制, 会立即开始下载
 
     @ColumnInfo(name = COLUMN_FILE_PATH)
     var filePath: String = ""                       //保存路径
@@ -128,6 +131,9 @@ class TaskInfo {
     @ColumnInfo(name = COLUMN_EXTRAS)
     var extras: String? = null                      //备用
 
+    @Ignore
+    internal var fileDir: String? = null            //指定文件保存目录
+
     internal constructor()
 
     internal constructor(builder: Builder) : this() {
@@ -138,7 +144,8 @@ class TaskInfo {
 
         title = builder.title
         thumb = builder.thumb
-        filePath = builder.filePath
+        filePath = builder.filePath.orEmpty()
+        fileDir = builder.fileDir
         onlyWifi = builder.onlyWifi
     }
 
@@ -149,7 +156,8 @@ class TaskInfo {
         internal var visible: Boolean = true
         internal var title: String? = null
         internal var thumb: String? = null
-        internal var filePath: String = ""
+        internal var filePath: String? = null
+        internal var fileDir: String? = null
         internal var onlyWifi: Boolean = false
 
         fun url(url: String) = apply {
@@ -183,15 +191,16 @@ class TaskInfo {
             this.filePath = filePath
         }
 
+        fun fileDir(fileDir: String) = apply {
+            this.fileDir = fileDir
+        }
+
         fun onlyWifi(downloadOnlyWifi: Boolean) = apply {
             this.onlyWifi = downloadOnlyWifi
         }
 
         fun build(): TaskInfo {
             fileType = PathUtil.getFileType(url)
-            if (filePath.isEmpty()) {
-                filePath = PathUtil.getFilePath(FileUtil.getFileName(url))
-            }
             return TaskInfo(this)
         }
     }

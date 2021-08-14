@@ -11,6 +11,11 @@ import android.os.Message
 import android.os.PowerManager
 import com.dhl.base.ContextHolder
 import com.dhl.base.downloader.db.DownloadDatabase
+import com.dhl.base.downloader.db.QueryConst
+import com.dhl.base.log
+import java.lang.StringBuilder
+import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  *
@@ -25,47 +30,94 @@ class TaskScheduler : Handler.Callback {
     companion object {
         const val MSG_SCHEDULE = 0x1001
 
-        private val scheduleStatus = listOf(
-            TaskInfo.TaskStatus.PENDING,
-            TaskInfo.TaskStatus.RUNNING,
-            TaskInfo.TaskStatus.DELETING
-        )
+        private fun TaskInfo.toDebugString(): String {
+            return "$title | $status | $downBytes/$totalBytes"
+        }
     }
 
     private val threadHandler: Handler
     private val wakeLock: PowerManager.WakeLock
     private val wifiLock: WifiManager.WifiLock
-    private val runningTasks = mutableListOf<Task>()
+    private val runningTasks = LinkedList<Task>()
     private val connectManager: ConnectivityManager
 
-    private val downloadListener = object : DownloadListener {
-        override fun onPending(taskInfo: TaskInfo) {
-            TODO("Not yet implemented")
+    var downloadListener: DownloadListener? = null
+
+    private var taskListener = object : DownloadTask.TaskListener {
+        override fun onPending(task: DownloadTask) {
+            val affectedRows = DownloadDatabase.DAO.updateStatus(task.taskInfo.id, TaskInfo.TaskStatus.PENDING)
+            if (affectedRows > 0) {
+                task.taskInfo.status = TaskInfo.TaskStatus.PENDING
+                downloadListener?.onPending(task.taskInfo)
+                schedule()
+            }
+            log { "onPending--${task.taskInfo.toDebugString()}" }
         }
 
-        override fun onStart(taskInfo: TaskInfo) {
-            TODO("Not yet implemented")
+        override fun onStart(task: DownloadTask): Boolean {
+            val affectedRows = DownloadDatabase.DAO.updateStatus(task.taskInfo.id, TaskInfo.TaskStatus.RUNNING)
+            if (affectedRows > 0) {
+                task.taskInfo.status = TaskInfo.TaskStatus.RUNNING
+                downloadListener?.onStart(task.taskInfo)
+                return true
+            }
+            log { "onStart--${task.taskInfo.toDebugString()}" }
+            return false
         }
 
-        override fun onStop(taskInfo: TaskInfo) {
-            TODO("Not yet implemented")
+        override fun onStop(task: DownloadTask) {
+            val affectedRows = DownloadDatabase.DAO.updateStatus(task.taskInfo.id, TaskInfo.TaskStatus.PAUSED)
+            if (affectedRows > 0) {
+                task.taskInfo.status = TaskInfo.TaskStatus.PAUSED
+                downloadListener?.onStop(task.taskInfo)
+            }
+            log { "onStop--${task.taskInfo.toDebugString()}" }
         }
 
-        override fun onProgressChanged(taskInfo: TaskInfo, downBytes: Long, totalBytes: Long) {
-            TODO("Not yet implemented")
+        override fun onProgressChanged(task: DownloadTask, downBytes: Long, totalBytes: Long) {
+            val affectedRows = DownloadDatabase.DAO.updateProgress(task.taskInfo.id, downBytes, totalBytes)
+            if (affectedRows > 0) {
+                downloadListener?.onProgressChanged(task.taskInfo, downBytes, totalBytes)
+            }
+            log { "onProgressChanged--${task.taskInfo.toDebugString()}" }
         }
 
-        override fun onFinish(taskInfo: TaskInfo) {
-            TODO("Not yet implemented")
+        override fun onSaveFileLength(task: DownloadTask, length: Long): Boolean {
+            val affectedRows = DownloadDatabase.DAO.updateProgress(task.taskInfo.id, task.taskInfo.downBytes, task.taskInfo.totalBytes)
+            log { "onSaveFileLength--${task.taskInfo.toDebugString()}" }
+            return affectedRows > 0
         }
 
-        override fun onError(taskInfo: TaskInfo, errorCode: Int) {
-            TODO("Not yet implemented")
+        override fun onFinish(task: DownloadTask) {
+            val affectedRows = DownloadDatabase.DAO.updateStatus(task.taskInfo.id, TaskInfo.TaskStatus.FINISH)
+            if (affectedRows > 0) {
+                task.taskInfo.status = TaskInfo.TaskStatus.FINISH
+                downloadListener?.onFinish(task.taskInfo)
+                schedule()
+            }
+            log { "onFinish--${task.taskInfo.toDebugString()}" }
         }
 
-        override fun onDelete(taskInfo: TaskInfo) {
-            TODO("Not yet implemented")
+        override fun onError(task: DownloadTask, errorCode: Int) {
+            val affectedRows = DownloadDatabase.DAO.updateStatusAndErrorCode(task.taskInfo.id, TaskInfo.TaskStatus.ERROR, errorCode)
+            if (affectedRows > 0) {
+                task.taskInfo.status = TaskInfo.TaskStatus.ERROR
+                task.taskInfo.errorCode = errorCode
+                downloadListener?.onError(task.taskInfo, errorCode)
+                schedule()
+            }
+            log { "onError--${task.taskInfo.toDebugString()} error:$errorCode" }
         }
+
+        override fun onDelete(task: DownloadTask, hasClearUp: Boolean) {
+            if (hasClearUp) {
+                DownloadDatabase.DAO.delete(task.taskInfo)
+            }
+            task.taskInfo.status = TaskInfo.TaskStatus.DELETING
+            downloadListener?.onDelete(task.taskInfo)
+            log { "onDelete--${task.taskInfo.toDebugString()}" }
+        }
+
     }
 
     init {
@@ -96,13 +148,13 @@ class TaskScheduler : Handler.Callback {
     }
 
     fun postAction(action: () -> Unit) {
-        threadHandler.post { action.invoke() }
+        threadHandler.post(action)
     }
 
     private fun schedule() {
         threadHandler.removeMessages(MSG_SCHEDULE)
 
-        val tasks = DownloadDatabase.DAO.queryStatusTasks(scheduleStatus) ?: ArrayList(0)
+        val tasks = DownloadDatabase.DAO.queryStatusTasks(QueryConst.scheduleStatus) ?: ArrayList(0)
 
         tasks.forEach { taskInfo ->
             if (taskInfo.status != TaskInfo.TaskStatus.DELETING) {
@@ -115,53 +167,55 @@ class TaskScheduler : Handler.Callback {
             deleteTask(taskInfo, task)
         }
 
-        val networkCapabilities: NetworkCapabilities? = connectManager.getNetworkCapabilities(connectManager.activeNetwork)
-        val isWifi = networkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
-        val isCellular = networkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true
+        //val networkCapabilities: NetworkCapabilities? = connectManager.getNetworkCapabilities(connectManager.activeNetwork)
+        // TODO() 判断网络是否连接,其它网络类型 bluetooth .etc
+        //val isWifi = networkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
+        //val isCellular = networkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true
         var runningTaskCount = 0
 
         val iterator = runningTasks.iterator()
         while (iterator.hasNext()) {
             val task = iterator.next()
-            val runningTaskInfo = tasks.find { it.status == TaskInfo.TaskStatus.RUNNING && it.id == task.taskInfo.id }
+            val runningTaskInfo = tasks.find { it.id == task.taskInfo.id }
 
             if (runningTaskInfo == null) {
                 stopTask(task)
                 iterator.remove()
             } else {
-                tasks.remove(runningTaskInfo)
-                if (task.taskInfo.visible) {
-                    runningTaskCount++
+                if (runningTaskInfo.status == TaskInfo.TaskStatus.RUNNING) {
+                    if (task.taskInfo.visible) {
+                        runningTaskCount++
+                    }
+                } else if (runningTaskInfo.status == TaskInfo.TaskStatus.PENDING) {
+                    pendingTask(task.taskInfo, task)
+                    iterator.remove()
                 }
             }
         }
 
         tasks.forEach { taskInfo ->
-            if (taskInfo.status != TaskInfo.TaskStatus.RUNNING) {
-                return@forEach
-            }
-            val task = startTask(taskInfo)
-            if (task.taskInfo.visible) {
-                runningTaskCount++
-            }
-        }
-
-
-        if (runningTaskCount < DownloadProvider.instance.maxRunningTaskCount()) {
-            for (taskInfo in tasks) {
-                if (taskInfo.status != TaskInfo.TaskStatus.PENDING) {
-                    continue
-                }
-
+            if (taskInfo.status == TaskInfo.TaskStatus.RUNNING && runningTasks.find { taskInfo.id == it.taskInfo.id } == null) {
                 val task = startTask(taskInfo)
-                DownloadDatabase.DAO.updateStatus(task.taskInfo.id, TaskInfo.TaskStatus.RUNNING)
                 if (task.taskInfo.visible) {
                     runningTaskCount++
                 }
+            }
+        }
 
-                if (runningTaskCount >= DownloadProvider.instance.maxRunningTaskCount()) {
-                    break
-                }
+        for (taskInfo in tasks) {
+            if (taskInfo.status != TaskInfo.TaskStatus.PENDING) {
+                continue
+            }
+
+            //开启后台下载任务,不受下载任务个数限制
+            if (!taskInfo.visible) {
+                startTask(taskInfo)
+                continue
+            }
+
+            if (runningTaskCount < DownloadProvider.instance.maxRunningTaskCount()) {
+                startTask(taskInfo)
+                runningTaskCount++
             }
         }
 
@@ -170,11 +224,24 @@ class TaskScheduler : Handler.Callback {
         } else {
             releaseLocks()
         }
+
+        log {
+            val builder = StringBuilder("  \nTaskList")
+            builder.append("[")
+            runningTasks.forEach { task ->
+                builder.append("\n\t").append(task.taskInfo.toDebugString())
+            }
+            if (runningTasks.size > 0) {
+                builder.append("\n")
+            }
+            builder.append("]")
+            builder.toString()
+        }
     }
 
     private fun createTask(taskInfo: TaskInfo): Task {
         return DownloadTask(taskInfo).apply {
-            listener = downloadListener
+            listener = taskListener
         }
     }
 
@@ -185,12 +252,17 @@ class TaskScheduler : Handler.Callback {
         return task
     }
 
+    private fun pendingTask(taskInfo: TaskInfo, runningTask: Task?) {
+        val task = runningTask ?: createTask(taskInfo)
+        task.pending()
+    }
+
     private fun stopTask(task: Task) {
         task.stop()
     }
 
     /**
-     * 删除任务: 1. 清理临时文件
+     * 删除任务: 清理临时文件
      */
     private fun deleteTask(taskInfo: TaskInfo, runningTask: Task? = null) {
         val task = runningTask ?: createTask(taskInfo)
