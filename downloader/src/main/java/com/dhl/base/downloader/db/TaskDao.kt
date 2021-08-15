@@ -20,7 +20,8 @@ class QueryConst {
         val scheduleStatus = listOf(
             TaskInfo.TaskStatus.PENDING,
             TaskInfo.TaskStatus.RUNNING,
-            TaskInfo.TaskStatus.DELETING
+            TaskInfo.TaskStatus.DELETING_RECORD,
+            TaskInfo.TaskStatus.DELETING_WITH_FILE,
         )
 
         val unFinishStatus = listOf(
@@ -67,8 +68,8 @@ interface TaskDao {
     /**
      * 根据当前状态更新下载状态
      */
-    @Query("update ${DownloadDatabase.TABLE_TASK} set ${TaskInfo.COLUMN_STATUS} = :update where ${TaskInfo.COLUMN_ID} = :id and ${TaskInfo.COLUMN_STATUS} != :expectNot")
-    fun compareAndUpdateStatus(id: Long, expectNot: TaskInfo.TaskStatus, update: TaskInfo.TaskStatus): Int
+    @Query("update ${DownloadDatabase.TABLE_TASK} set ${TaskInfo.COLUMN_STATUS} = :update where ${TaskInfo.COLUMN_URL} = :url and ${TaskInfo.COLUMN_STATUS} in (:expect)")
+    fun compareAndUpdateStatusByUrl(url: String, update: TaskInfo.TaskStatus, expect: List<TaskInfo.TaskStatus>): Int
 
     /**
      * 根据状态查询任务

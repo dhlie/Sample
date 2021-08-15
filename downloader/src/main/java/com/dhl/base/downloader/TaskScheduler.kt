@@ -3,7 +3,6 @@ package com.dhl.base.downloader
 import android.annotation.SuppressLint
 import android.content.Context
 import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import android.net.wifi.WifiManager
 import android.os.Handler
 import android.os.HandlerThread
@@ -49,7 +48,7 @@ class TaskScheduler : Handler.Callback {
             if (affectedRows > 0) {
                 task.taskInfo.status = TaskInfo.TaskStatus.PENDING
                 downloadListener?.onPending(task.taskInfo)
-                schedule()
+                triggerSchedule()
             }
             log { "onPending--${task.taskInfo.toDebugString()}" }
         }
@@ -93,7 +92,7 @@ class TaskScheduler : Handler.Callback {
             if (affectedRows > 0) {
                 task.taskInfo.status = TaskInfo.TaskStatus.FINISH
                 downloadListener?.onFinish(task.taskInfo)
-                schedule()
+                triggerSchedule()
             }
             log { "onFinish--${task.taskInfo.toDebugString()}" }
         }
@@ -104,7 +103,7 @@ class TaskScheduler : Handler.Callback {
                 task.taskInfo.status = TaskInfo.TaskStatus.ERROR
                 task.taskInfo.errorCode = errorCode
                 downloadListener?.onError(task.taskInfo, errorCode)
-                schedule()
+                triggerSchedule()
             }
             log { "onError--${task.taskInfo.toDebugString()} error:$errorCode" }
         }
@@ -113,7 +112,7 @@ class TaskScheduler : Handler.Callback {
             if (hasClearUp) {
                 DownloadDatabase.DAO.delete(task.taskInfo)
             }
-            task.taskInfo.status = TaskInfo.TaskStatus.DELETING
+            task.taskInfo.status = TaskInfo.TaskStatus.DELETING_RECORD
             downloadListener?.onDelete(task.taskInfo)
             log { "onDelete--${task.taskInfo.toDebugString()}" }
         }
@@ -157,7 +156,7 @@ class TaskScheduler : Handler.Callback {
         val tasks = DownloadDatabase.DAO.queryStatusTasks(QueryConst.scheduleStatus) ?: ArrayList(0)
 
         tasks.forEach { taskInfo ->
-            if (taskInfo.status != TaskInfo.TaskStatus.DELETING) {
+            if (taskInfo.status != TaskInfo.TaskStatus.DELETING_RECORD && taskInfo.status != TaskInfo.TaskStatus.DELETING_WITH_FILE) {
                 return@forEach
             }
 
@@ -266,7 +265,7 @@ class TaskScheduler : Handler.Callback {
      */
     private fun deleteTask(taskInfo: TaskInfo, runningTask: Task? = null) {
         val task = runningTask ?: createTask(taskInfo)
-        task.delete()
+        task.delete(taskInfo.status == TaskInfo.TaskStatus.DELETING_WITH_FILE)
     }
 
     private fun acquireLocks() {

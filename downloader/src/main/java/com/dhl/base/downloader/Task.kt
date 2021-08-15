@@ -28,6 +28,7 @@ interface Task {
 
     /**
      * 删除任务
+     * @param deleteFile 是否删除已下载的文件
      */
-    fun delete()
+    fun delete(deleteFile: Boolean)
 }

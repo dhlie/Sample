@@ -128,10 +128,19 @@ class DownloadManager private constructor() {
         if (taskInfo.filePath.isEmpty()) {
             val fileName = taskInfo.title ?: FileUtil.getFileName(taskInfo.url)
             taskInfo.filePath = PathUtil.getFilePath(fileName, taskInfo.fileDir)
+            if (taskInfo.title.isNullOrEmpty()) {
+                taskInfo.title = FileUtil.getFileName(taskInfo.filePath)
+            }
         }
         val id = DownloadDatabase.DAO.insertTask(taskInfo)
         if (id != -1L) {
             schedule()
+        } else {
+            //任务已存在, 重新开启任务
+            val affectedRows = DownloadDatabase.DAO.compareAndUpdateStatusByUrl(taskInfo.url, TaskInfo.TaskStatus.PENDING, listOf(TaskInfo.TaskStatus.PAUSED, TaskInfo.TaskStatus.ERROR))
+            if (affectedRows > 0) {
+                schedule()
+            }
         }
     }
 
@@ -149,7 +158,7 @@ class DownloadManager private constructor() {
      * 暂停后重新开始下载
      */
     fun resume(taskInfo: TaskInfo) = taskScheduler.postAction {
-        val affectedRows = DownloadDatabase.DAO.compareAndUpdateStatus(taskInfo.id, TaskInfo.TaskStatus.RUNNING, TaskInfo.TaskStatus.PENDING)
+        val affectedRows = DownloadDatabase.DAO.compareAndUpdateStatusByUrl(taskInfo.url, TaskInfo.TaskStatus.PENDING, listOf(TaskInfo.TaskStatus.PAUSED, TaskInfo.TaskStatus.ERROR))
         if (affectedRows > 0) {
             schedule()
         }
@@ -157,9 +166,11 @@ class DownloadManager private constructor() {
 
     /**
      * 删除任务
+     * @param deleteFile 是否删除已下载的文件
      */
-    fun delete(taskInfo: TaskInfo) = taskScheduler.postAction {
-        val affectedRows = DownloadDatabase.DAO.updateStatus(taskInfo.id, TaskInfo.TaskStatus.DELETING)
+    fun delete(taskInfo: TaskInfo, deleteFile: Boolean) = taskScheduler.postAction {
+        val status = if (deleteFile) TaskInfo.TaskStatus.DELETING_WITH_FILE else TaskInfo.TaskStatus.DELETING_RECORD
+        val affectedRows = DownloadDatabase.DAO.updateStatus(taskInfo.id, status)
         if (affectedRows > 0) {
             schedule()
         }

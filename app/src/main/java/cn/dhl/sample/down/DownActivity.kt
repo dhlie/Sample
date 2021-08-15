@@ -59,14 +59,14 @@ class DownActivity : BaseActivity() {
                 TaskInfo.TaskStatus.ERROR -> {
                     DownloadManager.instance.resume(taskInfo)
                 }
-                TaskInfo.TaskStatus.DELETING -> {
+                TaskInfo.TaskStatus.DELETING_RECORD, TaskInfo.TaskStatus.DELETING_WITH_FILE -> {
                 }
             }
         }
         setLongClickListener { view, pos, taskInfo ->
             taskInfo ?: return@setLongClickListener
-            CommonDialog.showTipsDialog(this@DownActivity, content = "删除该任务?", positiveClickListener = View.OnClickListener {
-                DownloadManager.instance.delete(taskInfo)
+            CommonDialog.showTipsDialog(this@DownActivity, content = "删除该任务和文件?", positiveClickListener = View.OnClickListener {
+                DownloadManager.instance.delete(taskInfo, true)
             })
         }
     }
@@ -106,7 +106,6 @@ class DownActivity : BaseActivity() {
                 }
                 val taskInfo: TaskInfo = TaskInfo.Builder()
                     .url(url)
-                    .title(FileUtil.getFileName(url))
                     .addHeader("token", "token")
                     .addHeader("header", "value")
                     .build()
@@ -179,7 +178,7 @@ private class DownloadListAdapter : ViewBindingAdapter<ActivityDownItemBinding, 
                 binding.tvStatus.text = "下载失败 ${taskInfo.errorCode}"
                 binding.tvStatus.setTextColor(App.instance.getColor(R.color.design_default_color_error))
             }
-            TaskInfo.TaskStatus.DELETING -> {
+            TaskInfo.TaskStatus.DELETING_RECORD, TaskInfo.TaskStatus.DELETING_WITH_FILE -> {
                 binding.tvStatus.text = "删除"
                 binding.tvStatus.setTextColor(App.instance.getColor(R.color.design_default_color_secondary_variant))
             }

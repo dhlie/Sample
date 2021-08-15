@@ -150,12 +150,12 @@ open class DownloadTask constructor(override val taskInfo: TaskInfo) : Task {
         }
     }
 
-    override fun delete() {
+    override fun delete(deleteFile: Boolean) {
         synchronized(this@DownloadTask) {
             if (status == TaskInfo.TaskStatus.RUNNING) {
-                status = TaskInfo.TaskStatus.DELETING
+                status = if (deleteFile) TaskInfo.TaskStatus.DELETING_WITH_FILE else TaskInfo.TaskStatus.DELETING_RECORD
             } else {
-                onDelete(getTempFile())
+                onDelete(deleteFile, getTempFile())
             }
         }
     }
@@ -206,8 +206,8 @@ open class DownloadTask constructor(override val taskInfo: TaskInfo) : Task {
                             onStop()
                             return
                         }
-                        TaskInfo.TaskStatus.DELETING -> {
-                            onDelete(file)
+                        TaskInfo.TaskStatus.DELETING_RECORD, TaskInfo.TaskStatus.DELETING_WITH_FILE -> {
+                            onDelete(status == TaskInfo.TaskStatus.DELETING_WITH_FILE, file)
                             return
                         }
                         TaskInfo.TaskStatus.PENDING -> {
@@ -275,8 +275,8 @@ open class DownloadTask constructor(override val taskInfo: TaskInfo) : Task {
 
     private fun onError(errorCode: Int) {
         synchronized(this@DownloadTask) {
-            if (status == TaskInfo.TaskStatus.DELETING) {
-                onDelete(getTempFile())
+            if (status == TaskInfo.TaskStatus.DELETING_RECORD || status == TaskInfo.TaskStatus.DELETING_WITH_FILE) {
+                onDelete(status == TaskInfo.TaskStatus.DELETING_WITH_FILE, getTempFile())
             } else {
                 status = TaskInfo.TaskStatus.ERROR
                 listener?.onError(this, errorCode)
@@ -284,9 +284,17 @@ open class DownloadTask constructor(override val taskInfo: TaskInfo) : Task {
         }
     }
 
-    private fun onDelete(file: File?) {
-        file?.delete()
-        listener?.onDelete(this, file?.exists() != true)
+    private fun onDelete(deleteFile: Boolean, tmpFile: File?) {
+        tmpFile?.delete()
+        var clearUp = tmpFile?.exists() != true
+        if (deleteFile) {
+            val file = File(taskInfo.filePath)
+            file.delete()
+            if (clearUp) {
+                clearUp = !file.exists()
+            }
+        }
+        listener?.onDelete(this, clearUp)
     }
 
     private fun onPending() {

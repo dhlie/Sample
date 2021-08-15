@@ -82,7 +82,8 @@ class TaskInfo {
         PAUSED,             //暂停下载
         FINISH,             //下载完成
         ERROR,              //下载失败
-        DELETING,           //删除
+        DELETING_RECORD,    //删除下载记录
+        DELETING_WITH_FILE, //删除下载记录和文件
     }
 
     @PrimaryKey(autoGenerate = true)
