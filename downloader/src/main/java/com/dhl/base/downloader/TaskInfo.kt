@@ -41,7 +41,7 @@ class TaskInfo {
         const val ERROR_FILE_LENGTH = 4                 //文件大小和 content-length 不一致
         const val ERROR_MKDIR = 5                       //创建目录失败
         const val ERROR_RENAME = 6                      //下载完重命名失败
-        const val ERROR_URL = 7                         //url 不合法
+        const val ERROR_BUILD_REQUEST = 7               //创建请求失败(e.g. url 不合法)
         const val ERROR_SAVE_LENGTH = 8                 //保存文件大小失败(修改数据库失败)
         const val ERROR_CANNOT_START = 9                //无法开启任务(修改数据库任务状态失败)
     }

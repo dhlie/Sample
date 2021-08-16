@@ -11,7 +11,7 @@ import cn.dhl.sample.R
 import cn.dhl.sample.base.ui.CommonDialog
 import cn.dhl.sample.databinding.ActivityDownBinding
 import cn.dhl.sample.databinding.ActivityDownItemBinding
-import com.dhl.base.downloader.CommonDownloadListener
+import com.dhl.base.downloader.DownloadListener
 import com.dhl.base.downloader.DownloadManager
 import com.dhl.base.downloader.TaskInfo
 import com.dhl.base.downloader.db.DownloadDatabase
@@ -71,7 +71,7 @@ class DownActivity : BaseActivity() {
         }
     }
 
-    private val downloadListener = object : CommonDownloadListener() {
+    private val downloadListener = object : DownloadListener {
         override fun onStatusChanged(taskInfo: TaskInfo) {
             taskStatusChanged()
         }

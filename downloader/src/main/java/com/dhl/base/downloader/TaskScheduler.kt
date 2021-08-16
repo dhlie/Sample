@@ -28,6 +28,7 @@ class TaskScheduler : Handler.Callback {
 
     companion object {
         const val MSG_SCHEDULE = 0x1001
+        const val MSG_STATUS_CHANGE = 0x1002
 
         private fun TaskInfo.toDebugString(): String {
             return "$title | $status | $downBytes/$totalBytes"
@@ -47,7 +48,7 @@ class TaskScheduler : Handler.Callback {
             val affectedRows = DownloadDatabase.DAO.updateStatus(task.taskInfo.id, TaskInfo.TaskStatus.PENDING)
             if (affectedRows > 0) {
                 task.taskInfo.status = TaskInfo.TaskStatus.PENDING
-                downloadListener?.onPending(task.taskInfo)
+                triggerStatusChange(task.taskInfo)
                 triggerSchedule()
             }
             log { "onPending--${task.taskInfo.toDebugString()}" }
@@ -57,7 +58,7 @@ class TaskScheduler : Handler.Callback {
             val affectedRows = DownloadDatabase.DAO.updateStatus(task.taskInfo.id, TaskInfo.TaskStatus.RUNNING)
             if (affectedRows > 0) {
                 task.taskInfo.status = TaskInfo.TaskStatus.RUNNING
-                downloadListener?.onStart(task.taskInfo)
+                triggerStatusChange(task.taskInfo)
                 return true
             }
             log { "onStart--${task.taskInfo.toDebugString()}" }
@@ -68,7 +69,7 @@ class TaskScheduler : Handler.Callback {
             val affectedRows = DownloadDatabase.DAO.updateStatus(task.taskInfo.id, TaskInfo.TaskStatus.PAUSED)
             if (affectedRows > 0) {
                 task.taskInfo.status = TaskInfo.TaskStatus.PAUSED
-                downloadListener?.onStop(task.taskInfo)
+                triggerStatusChange(task.taskInfo)
             }
             log { "onStop--${task.taskInfo.toDebugString()}" }
         }
@@ -91,7 +92,7 @@ class TaskScheduler : Handler.Callback {
             val affectedRows = DownloadDatabase.DAO.updateStatus(task.taskInfo.id, TaskInfo.TaskStatus.FINISH)
             if (affectedRows > 0) {
                 task.taskInfo.status = TaskInfo.TaskStatus.FINISH
-                downloadListener?.onFinish(task.taskInfo)
+                triggerStatusChange(task.taskInfo)
                 triggerSchedule()
             }
             log { "onFinish--${task.taskInfo.toDebugString()}" }
@@ -102,7 +103,7 @@ class TaskScheduler : Handler.Callback {
             if (affectedRows > 0) {
                 task.taskInfo.status = TaskInfo.TaskStatus.ERROR
                 task.taskInfo.errorCode = errorCode
-                downloadListener?.onError(task.taskInfo, errorCode)
+                triggerStatusChange(task.taskInfo)
                 triggerSchedule()
             }
             log { "onError--${task.taskInfo.toDebugString()} error:$errorCode" }
@@ -113,7 +114,7 @@ class TaskScheduler : Handler.Callback {
                 DownloadDatabase.DAO.delete(task.taskInfo)
             }
             task.taskInfo.status = TaskInfo.TaskStatus.DELETING_RECORD
-            downloadListener?.onDelete(task.taskInfo)
+            triggerStatusChange(task.taskInfo)
             log { "onDelete--${task.taskInfo.toDebugString()}" }
         }
 
@@ -134,15 +135,17 @@ class TaskScheduler : Handler.Callback {
 
     override fun handleMessage(msg: Message): Boolean {
         when (msg.what) {
-            MSG_SCHEDULE -> {
-                schedule()
-            }
+            MSG_SCHEDULE -> schedule()
+            MSG_STATUS_CHANGE -> statusChanged(msg.obj as TaskInfo)
         }
         return true
     }
 
+    fun triggerStatusChange(taskInfo: TaskInfo) {
+        threadHandler.obtainMessage(MSG_STATUS_CHANGE, taskInfo).sendToTarget()
+    }
+
     fun triggerSchedule() {
-        threadHandler.removeMessages(MSG_SCHEDULE)
         threadHandler.sendEmptyMessage(MSG_SCHEDULE)
     }
 
@@ -236,6 +239,11 @@ class TaskScheduler : Handler.Callback {
             builder.append("]")
             builder.toString()
         }
+    }
+
+    private fun statusChanged(taskInfo: TaskInfo) {
+        threadHandler.removeMessages(MSG_STATUS_CHANGE, taskInfo)
+        downloadListener?.onStatusChanged(taskInfo)
     }
 
     private fun createTask(taskInfo: TaskInfo): Task {

@@ -17,13 +17,8 @@ import java.util.LinkedList
 class DownloadManager private constructor() {
 
     companion object {
-        const val MSG_TASK_PENDING          = 0x2021
-        const val MSG_TASK_START            = 0x2022
-        const val MSG_TASK_STOP             = 0x2023
-        const val MSG_TASK_PROGRESS_CHANGED = 0x2024
-        const val MSG_TASK_FINISH           = 0x2025
-        const val MSG_TASK_ERROR            = 0x2026
-        const val MSG_TASK_DELETE           = 0x2027
+        const val MSG_TASK_STATUS_CHANGED   = 0x2021
+        const val MSG_TASK_PROGRESS_CHANGED = 0x2022
 
         val instance: DownloadManager by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
             DownloadManager()
@@ -41,45 +36,20 @@ class DownloadManager private constructor() {
         handler = object : Handler(Looper.getMainLooper()) {
             override fun handleMessage(msg: Message) {
                 when (msg.what) {
-                    MSG_TASK_PENDING -> notifyTaskPending(msg.obj as TaskInfo)
-                    MSG_TASK_START -> notifyTaskStart(msg.obj as TaskInfo)
-                    MSG_TASK_STOP -> notifyTaskStop(msg.obj as TaskInfo)
+                    MSG_TASK_STATUS_CHANGED -> notifyTaskStatusChanged(msg.obj as TaskInfo)
                     MSG_TASK_PROGRESS_CHANGED -> notifyTaskProgressChanged(msg.obj as TaskInfo)
-                    MSG_TASK_FINISH -> notifyTaskFinish(msg.obj as TaskInfo)
-                    MSG_TASK_ERROR -> notifyTaskError(msg.obj as TaskInfo, msg.arg1)
-                    MSG_TASK_DELETE -> notifyTaskDelete(msg.obj as TaskInfo)
                 }
             }
         }
         downloadListener = object : DownloadListener {
-            override fun onPending(taskInfo: TaskInfo) {
-                handler.obtainMessage(MSG_TASK_PENDING, taskInfo).sendToTarget()
-            }
-
-            override fun onStart(taskInfo: TaskInfo) {
-                handler.obtainMessage(MSG_TASK_START, taskInfo).sendToTarget()
-            }
-
-            override fun onStop(taskInfo: TaskInfo) {
-                handler.obtainMessage(MSG_TASK_STOP, taskInfo).sendToTarget()
+            override fun onStatusChanged(taskInfo: TaskInfo) {
+                handler.obtainMessage(MSG_TASK_STATUS_CHANGED, taskInfo).sendToTarget()
             }
 
             override fun onProgressChanged(taskInfo: TaskInfo, downBytes: Long, totalBytes: Long) {
                 taskInfo.downBytes = downBytes
                 taskInfo.totalBytes = totalBytes
                 handler.obtainMessage(MSG_TASK_PROGRESS_CHANGED, taskInfo).sendToTarget()
-            }
-
-            override fun onFinish(taskInfo: TaskInfo) {
-                handler.obtainMessage(MSG_TASK_FINISH, taskInfo).sendToTarget()
-            }
-
-            override fun onError(taskInfo: TaskInfo, errorCode: Int) {
-                handler.obtainMessage(MSG_TASK_ERROR, errorCode, 0, taskInfo).sendToTarget()
-            }
-
-            override fun onDelete(taskInfo: TaskInfo) {
-                handler.obtainMessage(MSG_TASK_DELETE, taskInfo).sendToTarget()
             }
         }
 
@@ -176,45 +146,15 @@ class DownloadManager private constructor() {
         }
     }
 
-    private fun notifyTaskPending(taskInfo: TaskInfo) {
+    private fun notifyTaskStatusChanged(taskInfo: TaskInfo) {
         for (listener in listeners) {
-            listener.onPending(taskInfo)
-        }
-    }
-
-    private fun notifyTaskStart(taskInfo: TaskInfo) {
-        for (listener in listeners) {
-            listener.onStart(taskInfo)
-        }
-    }
-
-    private fun notifyTaskStop(taskInfo: TaskInfo) {
-        for (listener in listeners) {
-            listener.onStop(taskInfo)
+            listener.onStatusChanged(taskInfo)
         }
     }
 
     private fun notifyTaskProgressChanged(taskInfo: TaskInfo) {
         for (listener in listeners) {
             listener.onProgressChanged(taskInfo, taskInfo.downBytes, taskInfo.totalBytes)
-        }
-    }
-
-    private fun notifyTaskFinish(taskInfo: TaskInfo) {
-        for (listener in listeners) {
-            listener.onFinish(taskInfo)
-        }
-    }
-
-    private fun notifyTaskError(taskInfo: TaskInfo, errorCode: Int) {
-        for (listener in listeners) {
-            listener.onError(taskInfo, errorCode)
-        }
-    }
-
-    private fun notifyTaskDelete(taskInfo: TaskInfo) {
-        for (listener in listeners) {
-            listener.onDelete(taskInfo)
         }
     }
 

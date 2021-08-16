@@ -85,7 +85,7 @@ open class DownloadTask constructor(override val taskInfo: TaskInfo) : Task {
             }
             //创建临时文件
             val fileName = FileUtil.getFileName(taskInfo.filePath)
-            tmpFile = File(tmpDir, "$fileName.tmp")
+            tmpFile = File(tmpDir, "$fileName.tmp${taskInfo.id}")
         }
         return tmpFile
     }
@@ -119,7 +119,7 @@ open class DownloadTask constructor(override val taskInfo: TaskInfo) : Task {
 
             builder.build()
         } catch (e: Exception) {
-            onError(TaskInfo.ERROR_URL)
+            onError(TaskInfo.ERROR_BUILD_REQUEST)
             return
         }
         val okHttpClient = DownloadProvider.instance.provideOkHttpClient()
