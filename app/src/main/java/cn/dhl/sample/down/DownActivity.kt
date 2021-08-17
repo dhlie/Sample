@@ -11,16 +11,14 @@ import cn.dhl.sample.R
 import cn.dhl.sample.base.ui.CommonDialog
 import cn.dhl.sample.databinding.ActivityDownBinding
 import cn.dhl.sample.databinding.ActivityDownItemBinding
-import com.dhl.base.downloader.DownloadListener
-import com.dhl.base.downloader.DownloadManager
-import com.dhl.base.downloader.TaskInfo
-import com.dhl.base.downloader.db.DownloadDatabase
-import com.dhl.base.downloader.db.QueryConst
 import com.dhl.base.ui.BaseActivity
 import com.dhl.base.ui.recyclerview.BindingViewHolder
 import com.dhl.base.ui.recyclerview.ViewBindingAdapter
 import com.dhl.base.utils.FileUtil
 import com.dhl.base.utils.ToastUtil
+import com.fdd.downloader.DownloadListener
+import com.fdd.downloader.DownloadManager
+import com.fdd.downloader.TaskInfo
 import kotlinx.coroutines.*
 
 /**
@@ -66,13 +64,13 @@ class DownActivity : BaseActivity() {
         setLongClickListener { view, pos, taskInfo ->
             taskInfo ?: return@setLongClickListener
             CommonDialog.showTipsDialog(this@DownActivity, content = "删除该任务和文件?", positiveClickListener = View.OnClickListener {
-                DownloadManager.instance.delete(taskInfo, true)
+                DownloadManager.instance.deleteByIdentity(taskInfo.identity, true)
             })
         }
     }
 
     private val downloadListener = object : DownloadListener {
-        override fun onStatusChanged(taskInfo: TaskInfo) {
+        override fun onStatusChanged(taskInfo: TaskInfo?) {
             taskStatusChanged()
         }
 
@@ -106,10 +104,11 @@ class DownActivity : BaseActivity() {
                 }
                 val taskInfo: TaskInfo = TaskInfo.Builder()
                     .url(url)
+                    .identity(url)
                     .addHeader("token", "token")
                     .addHeader("header", "value")
                     .build()
-                DownloadManager.instance.download(taskInfo)
+                DownloadManager.instance.deleteAndDownload(taskInfo, true)
             }
         }
         binding.btnClear.apply {
@@ -135,7 +134,7 @@ class DownActivity : BaseActivity() {
 
     private fun taskStatusChanged() {
         maniScope.launch(Dispatchers.IO) {
-            val tasks = DownloadDatabase.DAO.queryStatusTasks(QueryConst.allStatus)
+            val tasks = DownloadManager.instance.queryAllTask()
             withContext(Dispatchers.Main) {
                 adapter.changeData(tasks)
             }

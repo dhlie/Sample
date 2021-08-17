@@ -6,10 +6,9 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.dhl.base.ContextHolder
-import com.dhl.base.downloader.DownloadManager
-import com.dhl.base.downloader.TaskInfo
-import com.dhl.base.downloader.db.DownloadDatabase
-import com.dhl.base.downloader.db.TaskDao
+import com.fdd.downloader.TaskInfo
+import com.fdd.downloader.db.DownloadDatabase
+import com.fdd.downloader.db.TaskDao
 import com.dhl.base.log
 import org.junit.After
 
@@ -55,13 +54,6 @@ class SimpleEntityReadWriteTest {
         var id = userDao.insertTask(taskInfo)
         taskInfo.id = id
         id = userDao.insertTask(taskInfo)
-
-        var rows = DownloadManager.instance.pause(taskInfo)
-        val ti = userDao.queryById(taskInfo.id)
-        val ts = userDao.queryAll()
-        val rows1 = userDao.delete(taskInfo)
-
-        val ts1 = userDao.queryAll()
 
         log { "id:$id" }
     }
