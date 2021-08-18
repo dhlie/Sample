@@ -1,6 +1,5 @@
 package com.fdd.downloader
 
-import android.os.Environment
 import com.fdd.downloader.db.DownloadDatabase
 import java.io.File
 
@@ -13,11 +12,6 @@ import java.io.File
  */
 internal class PathUtil private constructor(){
     companion object {
-
-        /**
-         * 下载默认存储路径 /sdcard/Android/data/packagename/files/downloads
-         */
-        private var defaultDownloadDir: String = DownloadManager.config.context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)?.absolutePath ?: DownloadManager.config.context.getExternalFilesDir(null)!!.absolutePath
 
         /**
          * 根据 url或path 获取文件类型
@@ -50,7 +44,7 @@ internal class PathUtil private constructor(){
             }
 
             val dirPath = if (dir.isNullOrBlank()) {
-                defaultDownloadDir
+                DownloadManager.config.defaultDownloadDir
             } else {
                 dir
             }

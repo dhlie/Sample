@@ -62,7 +62,13 @@ internal interface TaskDao {
      * 根据当前状态更新下载状态
      */
     @Query("update ${DownloadDatabase.TABLE_TASK} set ${TaskInfo.COLUMN_STATUS} = :update where ${TaskInfo.COLUMN_IDENTITY} = :identity and ${TaskInfo.COLUMN_STATUS} in (:expect)")
-    fun compareAndUpdateStatusByIdentity(identity: String, update: TaskInfo.TaskStatus, expect: List<TaskInfo.TaskStatus>): Int
+    fun updateStatusByIdentity(identity: String, update: TaskInfo.TaskStatus, expect: List<TaskInfo.TaskStatus>): Int
+
+    /**
+     * 批量更新下载状态
+     */
+    @Query("update ${DownloadDatabase.TABLE_TASK} set ${TaskInfo.COLUMN_STATUS} = :update where ${TaskInfo.COLUMN_STATUS} in (:expect)")
+    fun batchUpdateStatus(update: TaskInfo.TaskStatus, expect: List<TaskInfo.TaskStatus>): Int
 
     /**
      * 根据状态查询任务

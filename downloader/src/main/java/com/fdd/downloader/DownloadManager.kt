@@ -6,7 +6,6 @@ import android.os.Looper
 import android.os.Message
 import com.fdd.downloader.db.DownloadDatabase
 import com.fdd.downloader.db.QueryConst
-import java.io.File
 import java.util.LinkedList
 
 /**
@@ -127,7 +126,7 @@ class DownloadManager private constructor() {
      * 暂停任务下载
      */
     fun pause(taskInfo: TaskInfo) = taskScheduler.postAction {
-        val affectedRows = DownloadDatabase.DAO.compareAndUpdateStatusByIdentity(taskInfo.identity,
+        val affectedRows = DownloadDatabase.DAO.updateStatusByIdentity(taskInfo.identity,
             TaskInfo.TaskStatus.PAUSED, listOf(TaskInfo.TaskStatus.RUNNING, TaskInfo.TaskStatus.PENDING))
         if (affectedRows > 0) {
             schedule()
@@ -140,12 +139,34 @@ class DownloadManager private constructor() {
      * 暂停后重新开始下载
      */
     fun resume(taskInfo: TaskInfo) = taskScheduler.postAction {
-        val affectedRows = DownloadDatabase.DAO.compareAndUpdateStatusByIdentity(taskInfo.identity,
+        val affectedRows = DownloadDatabase.DAO.updateStatusByIdentity(taskInfo.identity,
             TaskInfo.TaskStatus.PENDING, listOf(TaskInfo.TaskStatus.PAUSED, TaskInfo.TaskStatus.ERROR))
         if (affectedRows > 0) {
             schedule()
             taskInfo.status = TaskInfo.TaskStatus.PENDING
             downloadListener.onStatusChanged(taskInfo)
+        }
+    }
+
+    /**
+     * 暂停所有下载任务
+     */
+    fun pauseAll() {
+        val affectedRows = DownloadDatabase.DAO.batchUpdateStatus(TaskInfo.TaskStatus.PAUSED, listOf(TaskInfo.TaskStatus.RUNNING, TaskInfo.TaskStatus.PENDING))
+        if (affectedRows > 0) {
+            schedule()
+            downloadListener.onStatusChanged(null)
+        }
+    }
+
+    /**
+     * 开始所有下载任务
+     */
+    fun resumeAll() {
+        val affectedRows = DownloadDatabase.DAO.batchUpdateStatus(TaskInfo.TaskStatus.PENDING, listOf(TaskInfo.TaskStatus.PAUSED, TaskInfo.TaskStatus.ERROR))
+        if (affectedRows > 0) {
+            schedule()
+            downloadListener.onStatusChanged(null)
         }
     }
 
@@ -184,6 +205,10 @@ class DownloadManager private constructor() {
      */
     fun queryAllTask(): MutableList<TaskInfo>? {
         return DownloadDatabase.DAO.queryStatusTasks(QueryConst.allStatus)
+    }
+
+    fun queryByIdentity(identity: String): TaskInfo? {
+        return DownloadDatabase.DAO.queryByIdentity(identity)
     }
 
     private fun notifyTaskStatusChanged(taskInfo: TaskInfo?) {

@@ -1,6 +1,7 @@
 package com.fdd.downloader
 
 import android.content.Context
+import android.os.Environment
 import okhttp3.OkHttpClient
 
 /**
@@ -12,11 +13,16 @@ import okhttp3.OkHttpClient
  */
 class DownloaderConfig(val context: Context) {
 
+    /**
+     * 下载默认存储路径 /sdcard/Android/data/packagename/files/downloads
+     */
+    var defaultDownloadDir: String = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)?.absolutePath ?: context.getExternalFilesDir(null)!!.absolutePath
+
     private var httpClient: OkHttpClient? = null
     /**最大同时下载个数*/
     var maxRunningTaskCount = 2
     /**进度变化回调时间间隔*/
-    var progressNotifyInterval = 100
+    var progressNotifyInterval = 50
 
     fun httpClient(client: OkHttpClient) {
         httpClient = client
