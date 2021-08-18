@@ -114,9 +114,9 @@ class DownloadManager private constructor() {
 
         val id = DownloadDatabase.DAO.insertTask(taskInfo)
         if (id != -1L) {
+            schedule()
             taskInfo.id = id
             downloadListener.onStatusChanged(taskInfo)
-            schedule()
         } else {
             //任务已存在, 重新开启任务
             resume(taskInfo)
@@ -131,6 +131,8 @@ class DownloadManager private constructor() {
             TaskInfo.TaskStatus.PAUSED, listOf(TaskInfo.TaskStatus.RUNNING, TaskInfo.TaskStatus.PENDING))
         if (affectedRows > 0) {
             schedule()
+            taskInfo.status = TaskInfo.TaskStatus.PAUSED
+            downloadListener.onStatusChanged(taskInfo)
         }
     }
 
@@ -141,8 +143,9 @@ class DownloadManager private constructor() {
         val affectedRows = DownloadDatabase.DAO.compareAndUpdateStatusByIdentity(taskInfo.identity,
             TaskInfo.TaskStatus.PENDING, listOf(TaskInfo.TaskStatus.PAUSED, TaskInfo.TaskStatus.ERROR))
         if (affectedRows > 0) {
-            downloadListener.onStatusChanged(DownloadDatabase.DAO.queryByIdentity(taskInfo.identity))
             schedule()
+            taskInfo.status = TaskInfo.TaskStatus.PENDING
+            downloadListener.onStatusChanged(taskInfo)
         }
     }
 
@@ -152,13 +155,12 @@ class DownloadManager private constructor() {
      */
     fun deleteByIdentity(identity: String, deleteFile: Boolean) = taskScheduler.postAction {
         val status = if (deleteFile) TaskInfo.TaskStatus.DELETING_WITH_FILE else TaskInfo.TaskStatus.DELETING_RECORD
-        val delIdentity = "identity-del"
+        val delIdentity = "$identity-del"
         val affectedRows = DownloadDatabase.DAO.updateDeletingStatusByIdentity(identity, status, delIdentity)
         if (affectedRows > 0) {
-            val taskInfo = DownloadDatabase.DAO.queryByIdentity(delIdentity)
-            taskInfo?.let {
-                File(taskInfo.filePath).delete()
-                downloadListener.onStatusChanged(taskInfo)
+            DownloadDatabase.DAO.queryByIdentity(delIdentity)?.run {
+                this.identity = identity
+                downloadListener.onStatusChanged(this)
             }
             schedule()
         }
@@ -169,7 +171,7 @@ class DownloadManager private constructor() {
      */
     fun deleteAndDownload(taskInfo: TaskInfo, deleteFile: Boolean) = taskScheduler.postAction {
         val status = if (deleteFile) TaskInfo.TaskStatus.DELETING_WITH_FILE else TaskInfo.TaskStatus.DELETING_RECORD
-        val delIdentity = "identity-del"
+        val delIdentity = "${taskInfo.identity}-del"
         val affectedRows = DownloadDatabase.DAO.updateDeletingStatusByIdentity(taskInfo.identity, status, delIdentity)
         if (affectedRows > 0) {
             schedule()

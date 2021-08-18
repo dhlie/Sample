@@ -52,25 +52,11 @@ internal interface TaskDao {
     fun insertTask(taskInfo: TaskInfo): Long
 
     /**
-     * 更新下载状态
-     * Returns: The number of affected rows
-     */
-    @Query("update ${DownloadDatabase.TABLE_TASK} set ${TaskInfo.COLUMN_STATUS} = :status where ${TaskInfo.COLUMN_ID} = :id")
-    fun updateStatus(id: Long, status: TaskInfo.TaskStatus): Int
-
-    /**
-     * 根据 identity 更新下载状态
-     * Returns: The number of affected rows
-     */
-    @Query("update ${DownloadDatabase.TABLE_TASK} set ${TaskInfo.COLUMN_STATUS} = :status where ${TaskInfo.COLUMN_IDENTITY} = :identity")
-    fun updateStatusByIdentity(identity: String, status: TaskInfo.TaskStatus): Int
-
-    /**
      * 更新下载状态和错误码
      * Returns: The number of affected rows
      */
-    @Query("update ${DownloadDatabase.TABLE_TASK} set ${TaskInfo.COLUMN_STATUS} = :status, ${TaskInfo.COLUMN_ERROR_CODE} = :errorCode where ${TaskInfo.COLUMN_ID} = :id")
-    fun updateStatusAndErrorCode(id: Long, status: TaskInfo.TaskStatus, errorCode: Int): Int
+    @Query("update ${DownloadDatabase.TABLE_TASK} set ${TaskInfo.COLUMN_STATUS} = :status, ${TaskInfo.COLUMN_ERROR_CODE} = :errorCode where ${TaskInfo.COLUMN_ID} = :id and ${TaskInfo.COLUMN_STATUS} in (:expect)")
+    fun updateStatusAndErrorCode(id: Long, status: TaskInfo.TaskStatus, errorCode: Int, expect: List<TaskInfo.TaskStatus>): Int
 
     /**
      * 根据当前状态更新下载状态

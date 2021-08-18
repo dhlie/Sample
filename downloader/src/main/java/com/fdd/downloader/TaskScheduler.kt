@@ -41,7 +41,8 @@ internal class TaskScheduler : Handler.Callback {
 
     private var taskListener = object : DownloadTask.TaskListener {
         override fun onPending(task: DownloadTask) {
-            val affectedRows = DownloadDatabase.DAO.updateStatus(task.taskInfo.id, TaskInfo.TaskStatus.PENDING)
+            val affectedRows = DownloadDatabase.DAO.compareAndUpdateStatusByIdentity(task.taskInfo.identity,
+                TaskInfo.TaskStatus.PENDING, listOf(TaskInfo.TaskStatus.RUNNING, TaskInfo.TaskStatus.PAUSED, TaskInfo.TaskStatus.ERROR))
             if (affectedRows > 0) {
                 task.taskInfo.status = TaskInfo.TaskStatus.PENDING
                 downloadListener?.onStatusChanged(task.taskInfo)
@@ -51,7 +52,7 @@ internal class TaskScheduler : Handler.Callback {
         }
 
         override fun onStart(task: DownloadTask): Boolean {
-            val affectedRows = DownloadDatabase.DAO.updateStatus(task.taskInfo.id, TaskInfo.TaskStatus.RUNNING)
+            val affectedRows = DownloadDatabase.DAO.compareAndUpdateStatusByIdentity(task.taskInfo.identity, TaskInfo.TaskStatus.RUNNING, listOf(TaskInfo.TaskStatus.PENDING))
             if (affectedRows > 0) {
                 task.taskInfo.status = TaskInfo.TaskStatus.RUNNING
                 downloadListener?.onStatusChanged(task.taskInfo)
@@ -62,7 +63,8 @@ internal class TaskScheduler : Handler.Callback {
         }
 
         override fun onStop(task: DownloadTask) {
-            val affectedRows = DownloadDatabase.DAO.updateStatus(task.taskInfo.id, TaskInfo.TaskStatus.PAUSED)
+            val affectedRows = DownloadDatabase.DAO.compareAndUpdateStatusByIdentity(task.taskInfo.identity,
+                TaskInfo.TaskStatus.PAUSED, listOf(TaskInfo.TaskStatus.RUNNING, TaskInfo.TaskStatus.PENDING))
             if (affectedRows > 0) {
                 task.taskInfo.status = TaskInfo.TaskStatus.PAUSED
                 downloadListener?.onStatusChanged(task.taskInfo)
@@ -85,7 +87,7 @@ internal class TaskScheduler : Handler.Callback {
         }
 
         override fun onFinish(task: DownloadTask) {
-            val affectedRows = DownloadDatabase.DAO.updateStatus(task.taskInfo.id, TaskInfo.TaskStatus.FINISH)
+            val affectedRows = DownloadDatabase.DAO.compareAndUpdateStatusByIdentity(task.taskInfo.identity, TaskInfo.TaskStatus.FINISH, listOf(TaskInfo.TaskStatus.RUNNING))
             if (affectedRows > 0) {
                 task.taskInfo.status = TaskInfo.TaskStatus.FINISH
                 downloadListener?.onStatusChanged(task.taskInfo)
@@ -95,7 +97,7 @@ internal class TaskScheduler : Handler.Callback {
         }
 
         override fun onError(task: DownloadTask, errorCode: Int) {
-            val affectedRows = DownloadDatabase.DAO.updateStatusAndErrorCode(task.taskInfo.id, TaskInfo.TaskStatus.ERROR, errorCode)
+            val affectedRows = DownloadDatabase.DAO.updateStatusAndErrorCode(task.taskInfo.id, TaskInfo.TaskStatus.ERROR, errorCode, listOf(TaskInfo.TaskStatus.RUNNING))
             if (affectedRows > 0) {
                 task.taskInfo.status = TaskInfo.TaskStatus.ERROR
                 task.taskInfo.errorCode = errorCode
@@ -110,7 +112,6 @@ internal class TaskScheduler : Handler.Callback {
                 DownloadDatabase.DAO.delete(task.taskInfo)
             }
             task.taskInfo.status = TaskInfo.TaskStatus.DELETING_RECORD
-            //downloadListener?.onStatusChanged(task.taskInfo)
             log { "onDelete--${task.taskInfo.toDebugString()}" }
         }
 
