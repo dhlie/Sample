@@ -32,6 +32,7 @@
         <activity android:name=".popup.PopupActivity"/>
         <activity android:name=".adaptertest.AdapterTestActivity"/>
         <activity android:name=".down.DownActivity"/>
+        <activity android:name=".webview.WebViewActivity"/>
     </application>
 
 </manifest>

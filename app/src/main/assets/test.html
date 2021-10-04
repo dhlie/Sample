@@ -1,0 +1,79 @@
+<!DOCTYPE html >
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>html test</title>
+    <script>
+        function appendItem(htm) {
+            var panel = document.getElementById('panel');
+            var nextItem = document.createElement('div');
+            nextItem.setAttribute('class', 'wrap');
+            nextItem.innerHTML = htm;
+            panel.appendChild(nextItem);
+            return 'js return value';
+        }
+
+        const callbacks = { seq: 0 };
+        window.JSBridge = {
+            callApp(module, action, params, callback) {
+                var callbackId = null;
+                if (typeof callback === 'function') {
+                    callbackId = "cid-" + (callbacks.seq++);
+                    callbacks[callbackId] = callback;
+                }
+                var data = {"module":module, "action":action, "params":params, "callbackId":callbackId}
+                var appType = 1; //1-android 2-iOS
+                if (appType == 1) {
+                    window.fddApp.jsExec(JSON.stringify(data));
+                } else {
+                    window.webkit.messageHandlers.jsExec.postMessage(JSON.stringify(data));
+                }
+            },
+            onAppCall(callbackId, value) {
+                window.alert('aaa');
+                if (callbacks[callbackId]) {
+                    // 根据ID匹配callback，并执行
+                    callbacks[callbackId](value);
+                }
+            }
+        };
+
+        function invokeNative(arg) {
+            window.JSBridge.callApp('SignWebApp', 'showToast', arg, null)
+        }
+
+        function invokeNative(arg, callback) {
+            window.JSBridge.callApp('SignWebApp', 'showToast', arg, callback)
+        }
+
+
+        function btnClick(arg) {
+            window.JSBridge.callApp('SignWebApp', 'showToast', arg, function(value){ appendItem('native response:' + value) })
+        }
+    </script>
+
+</head>
+
+<body>
+    <div id="panel">
+        <div class="wrap"> <img height="13" width="13" src="./c51_files/xiaolaba.png">
+            <font color="red"> 京东11.11大促销,全场优惠不断 </font>
+        </div>
+        <font color="red">
+            <div class="wrap"> <img height="13" width="13" src="./c51_files/xiaolaba.png">
+                <font color="blue">认准官方帐号特征<img height="14" width="14" src="./c51_files/shall_role_xs.png"> <img
+                        height="14" width="14" src="./c51_files/shall_identity_xg.png"> <img height="14" width="14"
+                        src="./c51_files/shall_identity_gf.png">，谨防您的权益受损！</font>
+            </div>
+        </font>
+
+        <div class="wrap">
+            <button onclick="invokeNative('aaab')">Call Native without result</button>
+            <br /><br />
+            <button onclick="invokeNative('test callback', function(value){ appendItem('native response:' + value) })">Call Native with result</button>
+        </div>
+    </div>
+</body>
+
+</html>

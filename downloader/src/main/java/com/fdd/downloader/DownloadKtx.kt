@@ -9,8 +9,8 @@ import android.util.Log
  * Description:
  *
  */
-inline fun log(tag: String = "Downloader", level: Int = Log.INFO, block: () -> String) {
-    if (false) {
+internal inline fun log(tag: String = "Downloader", level: Int = Log.INFO, block: () -> String) {
+    if (BuildConfig.DEBUG) {
         when (level) {
             Log.VERBOSE -> Log.v(tag, block.invoke())
             Log.DEBUG -> Log.d(tag, block.invoke())

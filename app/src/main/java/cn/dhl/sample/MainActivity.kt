@@ -16,6 +16,7 @@ import cn.dhl.sample.dagger.DaggerActivity
 import cn.dhl.sample.databinding.ActivityMainBinding
 import cn.dhl.sample.down.DownActivity
 import cn.dhl.sample.popup.PopupActivity
+import cn.dhl.sample.webview.WebViewActivity
 import com.dhl.base.ui.BaseActivity
 import com.dhl.base.utils.PermissionHelper
 
@@ -53,17 +54,14 @@ class MainActivity : BaseActivity() {
             text = "download"
             setOnClickListener { startActivity(Intent(applicationContext, DownActivity::class.java)) }
         }
+        binding.btn7.apply {
+            text = "WebView"
+            setOnClickListener { startActivity(Intent(applicationContext, WebViewActivity::class.java)) }
+        }
     }
 
 
     private fun openFileExplorer() {
-//        val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
-//            addCategory(Intent.CATEGORY_OPENABLE)
-//            type = "*/*"
-//        }
-//
-//        startActivityForResult(intent, REQUEST_CODE_OPEN_FILE)
-
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         intent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*")
         startActivityForResult(intent, REQUEST_CODE_OPEN_FILE)
@@ -149,51 +147,6 @@ class MainActivity : BaseActivity() {
                 }
             }
             .start()
-
-
-//        PermissionHelper.with(this)
-//            .permission(
-//                Manifest.permission.READ_EXTERNAL_STORAGE,
-//                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-//                Manifest.permission.CAMERA,
-//                Manifest.permission.ACCESS_FINE_LOCATION
-//            )
-//            .rationale { perms, consumer ->
-//                val ps = StringBuilder()
-//                for (p in perms) {
-//                    ps.append("\n").append(PermissionHelper.permissionToText(p))
-//                }
-//
-//                AlertDialog.Builder(this)
-//                    .setMessage("需要以下权限才能执行此操作:$ps")
-//                    .setPositiveButton("确定") { _, _ ->
-//                        consumer.accept()
-//                    }
-//                    .setNegativeButton("取消") { _, _ ->
-//                        consumer.deny()
-//                    }
-//                    .show()
-//            }
-//            .onGranted {
-//                Toast.makeText(applicationContext, "permission ok", Toast.LENGTH_SHORT).show()
-//            }
-//            .onDenied { perms, noAskAgainPerms ->
-//                noAskAgainPerms?.let { perms ->
-//                    val ps = StringBuilder()
-//                    for (p in perms) {
-//                        ps.append("\n").append(PermissionHelper.permissionToText(p))
-//                    }
-//
-//                    AlertDialog.Builder(this)
-//                        .setMessage("请到设置页面开启如下权限:$ps")
-//                        .setPositiveButton("确定") { _, _ ->
-//                            PermissionHelper.toAppSetting(this)
-//                        }
-//                        .setNegativeButton("取消", null)
-//                        .show()
-//                }
-//            }
-//            .start()
     }
 
     companion object {

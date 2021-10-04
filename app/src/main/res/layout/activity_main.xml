@@ -15,7 +15,7 @@
         app:flow_horizontalGap="0dp"
         app:flow_verticalGap="20dp"
         app:flow_wrapMode="aligned"
-        app:constraint_referenced_ids="btn1,btn2,btn3,btn4,btn5,btn6"/>
+        app:constraint_referenced_ids="btn1,btn2,btn3,btn4,btn5,btn6,btn7,btn8,btn9"/>
     <Button
         android:id="@+id/btn1"
         android:layout_width="0dp"
@@ -49,6 +49,24 @@
         app:layout_constraintDimensionRatio="2:1"/>
     <Button
         android:id="@+id/btn6"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintWidth_percent="0.28"
+        app:layout_constraintDimensionRatio="2:1"/>
+    <Button
+        android:id="@+id/btn7"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintWidth_percent="0.28"
+        app:layout_constraintDimensionRatio="2:1"/>
+    <Button
+        android:id="@+id/btn8"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintWidth_percent="0.28"
+        app:layout_constraintDimensionRatio="2:1"/>
+    <Button
+        android:id="@+id/btn9"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintWidth_percent="0.28"

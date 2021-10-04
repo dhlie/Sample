@@ -28,7 +28,6 @@
         app:layout_goneMarginTop="24dp"
         android:gravity="start|left"
         android:paddingHorizontal="24dp"
-        android:text="@string/dialog_title"
         android:textColor="@color/black"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
