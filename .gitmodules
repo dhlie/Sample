@@ -1,0 +1,4 @@
+[submodule "libs/NetDemo"]
+	path = libs/NetDemo
+	url = git@github.com:dhlie/NetDemo.git
+	branch = dev
